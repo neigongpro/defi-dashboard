@@ -1,128 +1,130 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="mb-4">
-    <a href="/" class="inline-flex items-center text-xs font-semibold text-gray-400 hover:text-white transition-colors">
-        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
-        <span>Назад к рейтингу пулов</span>
-    </a>
-</div>
+{% block title %}{{ pool.project | capitalize }} ({{ pool.symbol }}) — Аналитика Пула{% endblock %}
 
-<!-- Pool Header Card -->
-<div class="glass-card rounded-2xl p-6 mb-6 border border-gray-800/80">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center space-x-4">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-xl text-white shadow-xl shadow-blue-500/20">
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Breadcrumbs -->
+    <div class="mb-3">
+        <a href="/" class="inline-flex items-center text-[11px] font-medium text-gray-400 hover:text-white transition-colors">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5 mr-1"></i>
+            <span>Назад к таблице пулов</span>
+        </a>
+    </div>
+
+    <!-- Compact Pool Header Bar -->
+    <div class="mini-card rounded-lg p-3.5 mb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-bold text-xs text-emerald-400">
                 {{ pool.project[:2] | upper }}
             </div>
             <div>
-                <div class="flex items-center space-x-2">
-                    <h1 class="text-2xl font-black text-white">{{ pool.project | capitalize }}</h1>
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <div class="flex items-center space-x-1.5">
+                    <h1 class="text-sm font-bold text-white">{{ pool.project | capitalize }}</h1>
+                    <span class="px-1.5 py-0.2 rounded text-[10px] font-medium bg-white/[0.05] text-gray-300 border border-white/[0.07]">
                         {{ pool.chain }}
                     </span>
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-800 text-gray-300 border border-gray-700">
+                    <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">
                         {{ pool.symbol }}
                     </span>
                 </div>
-                <div class="text-xs text-gray-400 mt-1 flex items-center space-x-3">
-                    <span>Pool ID: <code class="text-gray-300 font-mono text-[11px]">{{ pool.pool_id }}</code></span>
+                <div class="text-[10px] text-gray-500 mt-0.5 flex items-center space-x-2 font-mono">
+                    <span>ID: {{ pool.pool_id[:16] }}...</span>
                     <span>•</span>
-                    <span>Обновлено: {{ pool.ts[:19].replace('T', ' ') }} UTC</span>
+                    <span>Срез: {{ pool.ts[:19].replace('T', ' ') }} UTC</span>
                 </div>
             </div>
         </div>
 
-        <!-- Quick Rebalance Action -->
         <div>
-            <a href="/advisor?asset={{ pool.symbol.split('-')[0] }}&protocol={{ pool.project }}&chain={{ pool.chain }}&apy={{ pool.apy }}" class="inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/20 transition-all">
-                <i data-lucide="sparkles" class="w-4 h-4 mr-1.5"></i>
-                <span>Оценить ребаланс этой позиции</span>
+            <a href="/advisor?asset={{ pool.symbol.split('-')[0] }}&protocol={{ pool.project }}&chain={{ pool.chain }}&apy={{ pool.apy }}" class="inline-flex items-center px-3 py-1.5 rounded-md text-[11px] font-medium bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 mr-1"></i>
+                <span>Оценить ребаланс</span>
             </a>
         </div>
     </div>
-</div>
 
-<!-- Metrics Quick Grid -->
-<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-6">
-    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
-        <div class="text-[11px] text-gray-400 uppercase font-semibold">Текущий APY</div>
-        <div class="text-xl font-black text-emerald-400 mt-1">{{ pool.apy }}%</div>
-        <div class="text-[10px] text-gray-400 mt-0.5">Base: {{ pool.apy_base }}%</div>
-    </div>
-
-    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
-        <div class="text-[11px] text-gray-400 uppercase font-semibold">Ликвидность (TVL)</div>
-        <div class="text-xl font-black text-white mt-1">${{ "{:,.0f}".format(pool.tvl_usd) }}</div>
-        <div class="text-[10px] text-gray-400 mt-0.5">Δ 7d: <span class="{% if pool.tvl_change_7d_pct >= 0 %}text-emerald-400{% else %}text-rose-400{% endif %}">{{ pool.tvl_change_7d_pct }}%</span></div>
-    </div>
-
-    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
-        <div class="text-[11px] text-gray-400 uppercase font-semibold">30d Ср. APY</div>
-        <div class="text-xl font-black text-blue-300 mt-1">{{ pool.apy_avg_30d }}%</div>
-        <div class="text-[10px] text-gray-400 mt-0.5">7d ср: {{ pool.apy_avg_7d }}%</div>
-    </div>
-
-    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
-        <div class="text-[11px] text-gray-400 uppercase font-semibold">Real Yield Ratio</div>
-        <div class="text-xl font-black text-teal-300 mt-1">{{ (pool.real_yield_ratio * 100) | int }}%</div>
-        <div class="text-[10px] text-gray-400 mt-0.5">Чистый доход</div>
-    </div>
-
-    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
-        <div class="text-[11px] text-gray-400 uppercase font-semibold">Стабильность</div>
-        <div class="text-xl font-black text-purple-300 mt-1">{{ pool.stability_score }}</div>
-        <div class="text-[10px] text-gray-400 mt-0.5">Индекс 0..1</div>
-    </div>
-
-    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
-        <div class="text-[11px] text-gray-400 uppercase font-semibold">Рейтинг Риска</div>
-        <div class="text-xl font-black {% if pool.safety_grade == 'AAA' %}text-emerald-400{% elif pool.safety_grade == 'AA' %}text-blue-400{% else %}text-yellow-400{% endif %} mt-1">
-            {{ pool.safety_grade }}
-        </div>
-        <div class="text-[10px] text-gray-400 mt-0.5">
-            {% if pool.is_spike %}<span class="text-amber-400 font-bold">⚠️ Спайк</span>{% else %}Стабилен{% endif %}
-        </div>
-    </div>
-</div>
-
-<!-- Interactive Chart Card -->
-<div class="glass-card rounded-2xl p-6 border border-gray-800/80 shadow-2xl mb-6">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div>
-            <h2 class="text-base font-bold text-white flex items-center">
-                <i data-lucide="trending-up" class="w-4 h-4 mr-2 text-emerald-400"></i>
-                <span>Динамика Доходности и Ликвидности</span>
-            </h2>
-            <p class="text-xs text-gray-400 mt-0.5">Исторические замеры из ончейн-истории пула</p>
+    <!-- Dense 6-Column Metrics Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-3">
+        <div class="mini-card rounded-md p-2.5">
+            <div class="text-[9px] uppercase font-semibold text-gray-500">Текущий APY</div>
+            <div class="text-base font-bold font-mono text-emerald-400 mt-0.5">{{ pool.apy }}%</div>
+            <div class="text-[9px] text-gray-400 mt-0.5 font-mono">Base: {{ pool.apy_base }}%</div>
         </div>
 
-        <div class="flex items-center space-x-2">
-            <button onclick="loadHistory(7)" id="btn7d" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all">7 Дней</button>
-            <button onclick="loadHistory(30)" id="btn30d" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white transition-all">30 Дней</button>
+        <div class="mini-card rounded-md p-2.5">
+            <div class="text-[9px] uppercase font-semibold text-gray-500">Ликвидность TVL</div>
+            <div class="text-base font-bold font-mono text-white mt-0.5">${{ "{:,.0f}".format(pool.tvl_usd) }}</div>
+            <div class="text-[9px] text-gray-400 mt-0.5 font-mono">Δ 7d: <span class="{% if pool.tvl_change_7d_pct >= 0 %}text-emerald-400{% else %}text-rose-400{% endif %}">{{ pool.tvl_change_7d_pct }}%</span></div>
+        </div>
+
+        <div class="mini-card rounded-md p-2.5">
+            <div class="text-[9px] uppercase font-semibold text-gray-500">30d Ср. APY</div>
+            <div class="text-base font-bold font-mono text-gray-200 mt-0.5">{{ pool.apy_avg_30d }}%</div>
+            <div class="text-[9px] text-gray-400 mt-0.5 font-mono">7d: {{ pool.apy_avg_7d }}%</div>
+        </div>
+
+        <div class="mini-card rounded-md p-2.5">
+            <div class="text-[9px] uppercase font-semibold text-gray-500">Real Yield Ratio</div>
+            <div class="text-base font-bold font-mono text-sky-400 mt-0.5">{{ (pool.real_yield_ratio * 100) | int }}%</div>
+            <div class="text-[9px] text-gray-400 mt-0.5">Органика</div>
+        </div>
+
+        <div class="mini-card rounded-md p-2.5">
+            <div class="text-[9px] uppercase font-semibold text-gray-500">Стабильность</div>
+            <div class="text-base font-bold font-mono text-emerald-300 mt-0.5">{{ pool.stability_score }}</div>
+            <div class="text-[9px] text-gray-400 mt-0.5">По 30д тренду</div>
+        </div>
+
+        <div class="mini-card rounded-md p-2.5">
+            <div class="text-[9px] uppercase font-semibold text-gray-500">Рейтинг</div>
+            <div class="text-base font-bold font-mono {% if pool.safety_grade == 'AAA' %}text-emerald-400{% elif pool.safety_grade == 'AA' %}text-sky-400{% else %}text-gray-300{% endif %} mt-0.5">
+                {{ pool.safety_grade }}
+            </div>
+            <div class="text-[9px] text-gray-400 mt-0.5">{% if pool.is_spike %}⚠️ Спайк{% else %}Норма{% endif %}</div>
         </div>
     </div>
 
-    <!-- Chart Canvas -->
-    <div class="relative h-80 w-full">
-        <canvas id="poolHistoryChart"></canvas>
+    <!-- Chart Card -->
+    <div class="mini-card rounded-lg p-4">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <span class="text-xs font-semibold text-gray-200">Динамика Процентной Ставки</span>
+                <span class="text-[10px] text-gray-500 ml-2 hidden sm:inline">15-минутные ончейн-замеры</span>
+            </div>
+
+            <!-- Timeframe selector -->
+            <div class="flex items-center space-x-1 bg-[#07080b] p-0.5 rounded-md border border-white/[0.05]">
+                <button onclick="loadHistory(7)" id="btn7d" class="px-2.5 py-1 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 transition-all">7 дней</button>
+                <button onclick="loadHistory(30)" id="btn30d" class="px-2.5 py-1 rounded text-[10px] font-semibold text-gray-400 hover:text-gray-200 transition-all">30 дней</button>
+            </div>
+        </div>
+
+        <!-- Chart Canvas -->
+        <div class="h-64 sm:h-72 w-full relative">
+            <canvas id="poolHistoryChart"></canvas>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    let chartInstance = null;
     const poolId = "{{ pool.pool_id }}";
+    let chartInstance = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadHistory(7);
+    });
 
     async function loadHistory(days) {
-        document.getElementById('btn7d').className = days === 7 
-            ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white transition-all'
-            : 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all';
+        document.getElementById('btn7d').className = days === 7
+            ? 'px-2.5 py-1 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 transition-all'
+            : 'px-2.5 py-1 rounded text-[10px] font-semibold text-gray-400 hover:text-gray-200 transition-all';
         
         document.getElementById('btn30d').className = days === 30
-            ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white transition-all'
-            : 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all';
+            ? 'px-2.5 py-1 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 transition-all'
+            : 'px-2.5 py-1 rounded text-[10px] font-semibold text-gray-400 hover:text-gray-200 transition-all';
 
         try {
             const res = await fetch(`/api/pool/${poolId}/history?days=${days}`);
@@ -137,9 +139,7 @@
         const ctx = document.getElementById('poolHistoryChart').getContext('2d');
         if (chartInstance) chartInstance.destroy();
 
-        if (!history || !history.length) {
-            return;
-        }
+        if (!history || !history.length) return;
 
         const labels = history.map(h => {
             const d = new Date(h.timestamp);
@@ -148,9 +148,8 @@
         const apyData = history.map(h => h.apy);
         const baseApyData = history.map(h => h.apy_base || 0);
 
-        // Gradient for total APY
-        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
         gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
 
         chartInstance = new Chart(ctx, {
@@ -163,19 +162,19 @@
                         data: apyData,
                         borderColor: '#10B981',
                         backgroundColor: gradient,
-                        borderWidth: 2.5,
+                        borderWidth: 2,
                         fill: true,
                         tension: 0.4,
                         cubicInterpolationMode: 'monotone',
-                        pointRadius: history.length > 50 ? 0 : 3,
-                        pointHoverRadius: 6
+                        pointRadius: history.length > 50 ? 0 : 2,
+                        pointHoverRadius: 5
                     },
                     {
                         label: 'Base APY (%)',
                         data: baseApyData,
-                        borderColor: '#3B82F6',
-                        borderDash: [4, 4],
-                        borderWidth: 1.8,
+                        borderColor: '#38BDF8',
+                        borderDash: [3, 3],
+                        borderWidth: 1.5,
                         fill: false,
                         tension: 0.4,
                         cubicInterpolationMode: 'monotone',
@@ -187,7 +186,7 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: {
-                    duration: 750,
+                    duration: 600,
                     easing: 'easeInOutQuart'
                 },
                 interaction: {
@@ -199,29 +198,31 @@
                         position: 'top',
                         labels: {
                             color: '#9CA3AF',
-                            boxWidth: 12,
-                            font: { size: 11 }
+                            boxWidth: 10,
+                            font: { size: 10, family: 'Inter' }
                         }
                     },
                     tooltip: {
-                        backgroundColor: '#111827',
+                        backgroundColor: '#0d0f17',
                         titleColor: '#F3F4F6',
                         bodyColor: '#D1D5DB',
-                        borderColor: '#374151',
+                        borderColor: 'rgba(255,255,255,0.1)',
                         borderWidth: 1,
-                        padding: 10
+                        padding: 8,
+                        titleFont: { size: 10 },
+                        bodyFont: { size: 10, family: 'JetBrains Mono' }
                     }
                 },
                 scales: {
                     x: {
-                        grid: { color: 'rgba(55, 65, 81, 0.2)' },
-                        ticks: { color: '#6B7280', maxTicksLimit: 8, font: { size: 10 } }
+                        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                        ticks: { color: '#6B7280', maxTicksLimit: 7, font: { size: 9, family: 'JetBrains Mono' } }
                     },
                     y: {
-                        grid: { color: 'rgba(55, 65, 81, 0.3)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' },
                         ticks: { 
                             color: '#9CA3AF', 
-                            font: { size: 10 },
+                            font: { size: 9, family: 'JetBrains Mono' },
                             callback: value => value + '%'
                         }
                     }
@@ -229,8 +230,5 @@
             }
         });
     }
-
-    // Initial load 30 days
-    loadHistory(30);
 </script>
 {% endblock %}

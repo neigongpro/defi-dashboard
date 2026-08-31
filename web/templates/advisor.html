@@ -1,175 +1,176 @@
 {% extends "base.html" %}
 
+{% block title %}AI Rebalance Simulator — DeFi Tier-1{% endblock %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <!-- Header -->
-    <div class="mb-6">
-        <h1 class="text-2xl sm:text-3xl font-black text-white flex items-center">
-            <i data-lucide="sparkles" class="w-7 h-7 mr-2.5 text-emerald-400"></i>
-            <span>AI Советник & Калькулятор Ребаланса</span>
-        </h1>
-        <p class="text-xs sm:text-sm text-gray-400 mt-1">
-            Введите вашу текущую позицию, и ИИ-агент проанализирует рынок, посчитает срок окупаемости газа и выдаст персональный вердикт.
-        </p>
+<div class="max-w-5xl mx-auto">
+    <!-- Breadcrumb & Header -->
+    <div class="mb-3.5 flex items-center justify-between">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="text-xs font-semibold text-white">AI Калькулятор Ребаланса</span>
+                <span class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">Gemini 2.5</span>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-0.5">
+                Моделирование окупаемости газа (Break-Even) и поиск оптимальной доходности по Tier-1 протоколам.
+            </p>
+        </div>
+        <a href="/" class="text-[11px] text-gray-400 hover:text-white flex items-center transition-colors">
+            <i data-lucide="arrow-left" class="w-3 h-3 mr-1"></i>
+            <span>Назад к таблице</span>
+        </a>
     </div>
 
-    <!-- Input Form Card -->
-    <div class="glass-card rounded-2xl p-6 mb-8 border border-gray-800/80 shadow-2xl">
-        <form id="rebalanceForm" onsubmit="handleRebalanceSubmit(event)" class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Asset -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">Актив</label>
-                    <select id="assetInput" class="w-full bg-gray-800/90 text-sm text-white rounded-xl px-3.5 py-2.5 border border-gray-700 focus:outline-none focus:border-blue-500">
-                        <option value="USDT">USDT (Tether)</option>
-                        <option value="USDC">USDC (USD Coin)</option>
-                        <option value="DAI">DAI (Maker/Sky)</option>
-                        <option value="ETH">ETH / WETH (Ethereum)</option>
-                        <option value="WBTC">WBTC / cbBTC (Bitcoin)</option>
-                    </select>
+    <!-- Main 2-Column Split Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+        <!-- Left: Compact Parameter Form (5 Cols) -->
+        <div class="lg:col-span-5">
+            <div class="mini-card rounded-lg p-3.5">
+                <div class="text-[11px] font-semibold text-gray-200 uppercase tracking-wider mb-2.5 flex items-center">
+                    <i data-lucide="sliders" class="w-3 h-3 mr-1.5 text-emerald-400"></i>
+                    <span>Параметры позиции</span>
                 </div>
 
-                <!-- Amount USD -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">Сумма депозита ($)</label>
-                    <div class="relative">
-                        <span class="absolute left-3.5 top-2.5 text-gray-400 text-sm">$</span>
-                        <input type="number" id="amountInput" value="10000" min="100" step="100" required class="w-full bg-gray-800/90 text-sm text-white rounded-xl pl-8 pr-3.5 py-2.5 border border-gray-700 focus:outline-none focus:border-blue-500 font-mono">
+                <form id="rebalanceForm" onsubmit="handleRebalanceSubmit(event)" class="space-y-2.5">
+                    <!-- Asset -->
+                    <div>
+                        <label class="block text-[10px] uppercase font-medium text-gray-400 mb-1">Актив</label>
+                        <select id="assetInput" class="w-full bg-[#0f121a] text-[11px] text-white rounded-md px-2.5 py-1.5 border border-white/[0.07] focus:outline-none focus:border-emerald-500/50 font-mono">
+                            <option value="USDT">USDT (Tether)</option>
+                            <option value="USDC">USDC (USD Coin)</option>
+                            <option value="DAI">DAI / USDS (Sky/Maker)</option>
+                            <option value="USDE">USDe (Ethena)</option>
+                            <option value="ETH">ETH / WETH (Ethereum)</option>
+                            <option value="WBTC">WBTC / cbBTC (Bitcoin)</option>
+                        </select>
+                    </div>
+
+                    <!-- Amount & APY in 2 inline columns -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] uppercase font-medium text-gray-400 mb-1">Депозит ($)</label>
+                            <div class="relative">
+                                <span class="absolute left-2.5 top-1.5 text-gray-500 text-[11px] font-mono">$</span>
+                                <input type="number" id="amountInput" value="10000" min="100" step="100" required class="w-full bg-[#0f121a] text-[11px] text-white rounded-md pl-6 pr-2 py-1.5 border border-white/[0.07] focus:outline-none focus:border-emerald-500/50 font-mono">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] uppercase font-medium text-gray-400 mb-1">Текущий APY (%)</label>
+                            <div class="relative">
+                                <input type="number" id="apyInput" value="4.2" min="0" max="500" step="0.1" required class="w-full bg-[#0f121a] text-[11px] text-white rounded-md px-2.5 py-1.5 border border-white/[0.07] focus:outline-none focus:border-emerald-500/50 font-mono">
+                                <span class="absolute right-2 top-1.5 text-gray-500 text-[10px] font-mono">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Protocol & Chain in 2 inline columns -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] uppercase font-medium text-gray-400 mb-1">Текущий протокол</label>
+                            <select id="protocolInput" class="w-full bg-[#0f121a] text-[11px] text-white rounded-md px-2 py-1.5 border border-white/[0.07] focus:outline-none focus:border-emerald-500/50">
+                                <option value="aave-v3">Aave v3</option>
+                                <option value="morpho-blue">Morpho Blue</option>
+                                <option value="compound-v3">Compound v3</option>
+                                <option value="spark">Spark</option>
+                                <option value="fluid-lending">Fluid</option>
+                                <option value="curve-dex">Curve</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] uppercase font-medium text-gray-400 mb-1">Текущая сеть</label>
+                            <select id="chainInput" class="w-full bg-[#0f121a] text-[11px] text-white rounded-md px-2 py-1.5 border border-white/[0.07] focus:outline-none focus:border-emerald-500/50">
+                                <option value="Ethereum">Ethereum</option>
+                                <option value="Base">Base</option>
+                                <option value="Arbitrum">Arbitrum</option>
+                                <option value="Optimism">Optimism</option>
+                                <option value="Polygon">Polygon</option>
+                                <option value="BSC">BSC</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Category Risk -->
+                    <div>
+                        <label class="block text-[10px] uppercase font-medium text-gray-400 mb-1">Стратегия риска</label>
+                        <select id="categoryInput" class="w-full bg-[#0f121a] text-[11px] text-white rounded-md px-2.5 py-1.5 border border-white/[0.07] focus:outline-none focus:border-emerald-500/50">
+                            <option value="lending">🛡️ Консервативно: Только Lending (Депозиты)</option>
+                            <option value="all">⚡ Все Tier-1 (Lending + DEX)</option>
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-1">
+                        <button type="submit" id="submitAdvisorBtn" class="w-full py-2 rounded-md text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center justify-center space-x-1.5 shadow-sm">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                            <span>Рассчитать выгоду</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right: Results & AI Advice (7 Cols) -->
+        <div class="lg:col-span-7">
+            <!-- Initial State (Before submit) -->
+            <div id="resultsPlaceholder" class="mini-card rounded-lg p-8 text-center text-gray-500 h-full flex flex-col items-center justify-center">
+                <i data-lucide="calculator" class="w-8 h-8 text-gray-600 mb-2"></i>
+                <div class="text-xs text-gray-400 font-medium">Готов к расчету</div>
+                <div class="text-[11px] text-gray-500 max-w-xs mt-1">
+                    Укажите параметры вашей позиции слева и нажмите «Рассчитать выгоду», чтобы ИИ нашел лучшие альтернативы с расчетом газа.
+                </div>
+            </div>
+
+            <!-- Active Result Container -->
+            <div id="resultsContainer" class="hidden space-y-3">
+                <!-- Verdict Header Box -->
+                <div id="verdictBox" class="mini-card rounded-lg p-3 border-l-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span id="verdictBadge" class="text-[10px] font-mono uppercase font-bold px-1.5 py-0.5 rounded"></span>
+                            <span class="text-xs font-semibold text-white" id="verdictTitle"></span>
+                        </div>
+                        <div class="text-[11px] font-mono text-gray-400" id="currentYieldSummary"></div>
+                    </div>
+                    <div class="text-[11px] text-gray-300 mt-1.5 leading-relaxed" id="verdictSummary"></div>
+                </div>
+
+                <!-- Best Alternative Card -->
+                <div id="bestAltContainer" class="mini-card rounded-lg p-3">
+                    <div class="text-[10px] uppercase font-semibold text-gray-400 mb-2 flex items-center justify-between">
+                        <span>Рекомендуемый пул</span>
+                        <span class="text-emerald-400 font-mono" id="bestAltExtraIncome"></span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono">
+                        <div class="bg-white/[0.02] p-2 rounded border border-white/[0.04]">
+                            <div class="text-[9px] text-gray-500 uppercase">Новый APY</div>
+                            <div class="text-sm font-bold text-emerald-400 mt-0.5" id="bestAltApy"></div>
+                        </div>
+                        <div class="bg-white/[0.02] p-2 rounded border border-white/[0.04]">
+                            <div class="text-[9px] text-gray-500 uppercase">Прирост APY</div>
+                            <div class="text-sm font-bold text-sky-400 mt-0.5" id="bestAltDiff"></div>
+                        </div>
+                        <div class="bg-white/[0.02] p-2 rounded border border-white/[0.04]">
+                            <div class="text-[9px] text-gray-500 uppercase">Расход на газ</div>
+                            <div class="text-sm font-bold text-gray-300 mt-0.5" id="bestAltGas"></div>
+                        </div>
+                        <div class="bg-white/[0.02] p-2 rounded border border-white/[0.04]">
+                            <div class="text-[9px] text-gray-500 uppercase">Окупаемость</div>
+                            <div class="text-sm font-bold text-amber-300 mt-0.5" id="bestAltBreakEven"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Current APY -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">Текущий APY (%)</label>
-                    <div class="relative">
-                        <input type="number" id="apyInput" value="4.2" min="0" max="500" step="0.1" required class="w-full bg-gray-800/90 text-sm text-white rounded-xl px-3.5 py-2.5 border border-gray-700 focus:outline-none focus:border-blue-500 font-mono">
-                        <span class="absolute right-3.5 top-2.5 text-gray-400 text-sm">%</span>
+                <!-- AI Advice Synthesis Card -->
+                <div class="mini-card rounded-lg p-3.5 border border-emerald-500/20">
+                    <div class="flex items-center space-x-1.5 text-[11px] font-semibold text-emerald-400 mb-2">
+                        <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+                        <span>Анализ финансового ИИ-агента</span>
                     </div>
+                    <div id="aiAdviceContent" class="text-[11px] text-gray-300 leading-relaxed space-y-1.5"></div>
                 </div>
-
-                <!-- Current Protocol -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">Текущий протокол</label>
-                    <select id="protocolInput" class="w-full bg-gray-800/90 text-sm text-white rounded-xl px-3.5 py-2.5 border border-gray-700 focus:outline-none focus:border-blue-500">
-                        <option value="aave-v3">Aave v3</option>
-                        <option value="morpho-blue">Morpho Blue</option>
-                        <option value="compound-v3">Compound v3</option>
-                        <option value="spark">Spark Lending</option>
-                        <option value="fluid">Fluid</option>
-                        <option value="uniswap-v3">Uniswap v3</option>
-                        <option value="curve-dex">Curve</option>
-                        <option value="lido">Lido (stETH)</option>
-                        <option value="aerodrome">Aerodrome</option>
-                    </select>
-                </div>
-
-                <!-- Current Chain -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">Текущая сеть</label>
-                    <select id="chainInput" class="w-full bg-gray-800/90 text-sm text-white rounded-xl px-3.5 py-2.5 border border-gray-700 focus:outline-none focus:border-blue-500">
-                        <option value="Ethereum">Ethereum Mainnet</option>
-                        <option value="Base">Base</option>
-                        <option value="Arbitrum">Arbitrum One</option>
-                        <option value="Optimism">Optimism (OP Mainnet)</option>
-                        <option value="Polygon">Polygon POS</option>
-                        <option value="BSC">BNB Chain</option>
-                    </select>
-                </div>
-
-                <!-- Category Focus -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">Стратегия риска</label>
-                    <select id="categoryInput" class="w-full bg-gray-800/90 text-sm text-white rounded-xl px-3.5 py-2.5 border border-gray-700 focus:outline-none focus:border-blue-500">
-                        <option value="lending">🛡️ Консервативно: Только Lending</option>
-                        <option value="all">⚡ Максимум: Все Tier-1 (Lending + DEX)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="pt-2">
-                <button type="submit" id="submitAdvisorBtn" class="w-full py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-600 hover:from-emerald-400 hover:to-blue-500 text-white shadow-xl shadow-emerald-500/20 transition-all flex items-center justify-center space-x-2">
-                    <i data-lucide="sparkles" class="w-4 h-4"></i>
-                    <span>Рассчитать выгоду и получить совет ИИ</span>
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Results Section (Hidden until submitted) -->
-    <div id="resultsContainer" class="hidden space-y-6">
-        <!-- Verdict Hero Banner -->
-        <div id="verdictBanner" class="rounded-2xl p-5 border shadow-xl flex items-start space-x-4">
-            <div id="verdictIcon" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white font-bold">
-                <!-- icon inserted via JS -->
-            </div>
-            <div>
-                <div class="flex items-center space-x-2">
-                    <span id="verdictBadge" class="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full"></span>
-                    <span class="text-xs text-gray-400">Рекомендация алгоритма</span>
-                </div>
-                <h3 id="verdictTitle" class="text-lg font-bold text-white mt-1"></h3>
-                <p id="verdictText" class="text-xs text-gray-300 mt-1"></p>
-            </div>
-        </div>
-
-        <!-- AI Deep Assessment Card -->
-        <div class="glass-card rounded-2xl p-6 border border-gray-800/80 shadow-2xl">
-            <div class="flex items-center space-x-2 text-emerald-400 font-bold text-sm mb-3">
-                <i data-lucide="bot" class="w-4 h-4"></i>
-                <span>Развёрнутый анализ ИИ-агента (Gemini 2.5)</span>
-            </div>
-            <div id="aiAdviceContent" class="text-xs sm:text-sm text-gray-200 leading-relaxed whitespace-pre-line bg-gray-900/50 p-4 rounded-xl border border-gray-800 font-normal">
-                <!-- AI text here -->
-            </div>
-        </div>
-
-        <!-- Break-Even & Financial Details Grid -->
-        <div id="financialGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="glass-card rounded-xl p-4 border border-gray-800/80">
-                <div class="text-[11px] text-gray-400 uppercase font-semibold">Окупаемость газа</div>
-                <div id="statBreakEven" class="text-2xl font-black text-white mt-1">--</div>
-                <div class="text-[10px] text-gray-400 mt-0.5" id="statGasCost">Комиссия перехода: $--</div>
-            </div>
-
-            <div class="glass-card rounded-xl p-4 border border-gray-800/80">
-                <div class="text-[11px] text-gray-400 uppercase font-semibold">Дополнительно в год</div>
-                <div id="statYearlyGain" class="text-2xl font-black text-emerald-400 mt-1">+$--</div>
-                <div class="text-[10px] text-gray-400 mt-0.5" id="statDailyGain">В день: +$--</div>
-            </div>
-
-            <div class="glass-card rounded-xl p-4 border border-gray-800/80">
-                <div class="text-[11px] text-gray-400 uppercase font-semibold">Спред доходности</div>
-                <div id="statApyDiff" class="text-2xl font-black text-blue-300 mt-1">+--%</div>
-                <div class="text-[10px] text-gray-400 mt-0.5">Разница со ставкой</div>
-            </div>
-        </div>
-
-        <!-- Alternative Pools Table -->
-        <div class="glass-card rounded-2xl border border-gray-800/80 overflow-hidden shadow-2xl">
-            <div class="px-5 py-4 border-b border-gray-800">
-                <h3 class="text-sm font-bold text-white flex items-center">
-                    <i data-lucide="list-ordered" class="w-4 h-4 mr-2 text-blue-400"></i>
-                    <span>Топ Альтернативных Tier-1 Пулов</span>
-                </h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-gray-900/60 text-gray-400 uppercase text-[10px] font-semibold border-b border-gray-800">
-                        <tr>
-                            <th class="py-2.5 px-4">Протокол</th>
-                            <th class="py-2.5 px-3">Сеть</th>
-                            <th class="py-2.5 px-3 text-right">TVL</th>
-                            <th class="py-2.5 px-3 text-right">APY</th>
-                            <th class="py-2.5 px-3 text-right">Выгода (APY Δ)</th>
-                            <th class="py-2.5 px-3 text-right">Окупаемость</th>
-                            <th class="py-2.5 px-3 text-center">Безопасность</th>
-                        </tr>
-                    </thead>
-                    <tbody id="altTableBody" class="divide-y divide-gray-800/50">
-                        <!-- Alternatives inserted here -->
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
@@ -178,31 +179,20 @@
 
 {% block scripts %}
 <script>
-    // Prefill from query params if any
-    window.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('asset')) document.getElementById('assetInput').value = urlParams.get('asset').toUpperCase();
-        if (urlParams.get('amount')) document.getElementById('amountInput').value = urlParams.get('amount');
-        if (urlParams.get('apy')) document.getElementById('apyInput').value = urlParams.get('apy');
-        if (urlParams.get('protocol')) document.getElementById('protocolInput').value = urlParams.get('protocol');
-        if (urlParams.get('chain')) document.getElementById('chainInput').value = urlParams.get('chain');
-    });
-
-    async function handleRebalanceSubmit(event) {
-        event.preventDefault();
-        const btn = document.getElementById('submitAdvisorBtn');
-        const origBtnText = btn.innerHTML;
-        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2"></i><span>Анализируем ончейн данные и советуемся с ИИ...</span>`;
-        btn.disabled = true;
+    async function handleRebalanceSubmit(e) {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submitAdvisorBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i><span>Анализирую рынок...</span>`;
         lucide.createIcons();
 
         const payload = {
             asset: document.getElementById('assetInput').value,
             amount_usd: parseFloat(document.getElementById('amountInput').value),
-            current_apy: parseFloat(document.getElementById('apyInput').value),
             current_protocol: document.getElementById('protocolInput').value,
             current_chain: document.getElementById('chainInput').value,
-            category: document.getElementById('categoryInput').value
+            current_apy: parseFloat(document.getElementById('apyInput').value),
+            target_category: document.getElementById('categoryInput').value === 'all' ? null : 'lending'
         };
 
         try {
@@ -213,96 +203,67 @@
             });
             const data = await res.json();
             renderResults(data);
-        } catch(e) {
-            console.error("Rebalance error:", e);
-            alert("Ошибка при расчёте. Пожалуйста, попробуйте снова.");
+        } catch(err) {
+            console.error('Advisor error:', err);
+            alert('Ошибка при анализе: ' + err.message);
         } finally {
-            btn.innerHTML = origBtnText;
-            btn.disabled = false;
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i data-lucide="sparkles" class="w-3.5 h-3.5"></i><span>Рассчитать выгоду</span>`;
             lucide.createIcons();
         }
     }
 
     function renderResults(data) {
-        const evalRes = data.evaluation;
-        const aiAdvice = data.ai_advice;
+        document.getElementById('resultsPlaceholder').classList.add('hidden');
         const container = document.getElementById('resultsContainer');
         container.classList.remove('hidden');
 
-        // 1. Verdict Banner Styling
-        const banner = document.getElementById('verdictBanner');
-        const iconDiv = document.getElementById('verdictIcon');
-        const badge = document.getElementById('verdictBadge');
-        const title = document.getElementById('verdictTitle');
-        const text = document.getElementById('verdictText');
+        const evalData = data.evaluation;
+        const verdict = evalData.verdict;
 
-        if (evalRes.verdict === 'STRONG_MOVE') {
-            banner.className = 'rounded-2xl p-5 border shadow-xl flex items-start space-x-4 bg-emerald-950/40 border-emerald-500/30';
-            iconDiv.className = 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-500/20 text-emerald-400';
-            iconDiv.innerHTML = '<i data-lucide="arrow-up-right" class="w-6 h-6"></i>';
-            badge.className = 'text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
-            badge.innerText = 'Рекомендуется перенос';
-            title.innerText = 'Обнаружена выгодная возможность оптимизации';
-        } else if (evalRes.verdict === 'CONSIDER') {
-            banner.className = 'rounded-2xl p-5 border shadow-xl flex items-start space-x-4 bg-blue-950/40 border-blue-500/30';
-            iconDiv.className = 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-blue-500/20 text-blue-400';
-            iconDiv.innerHTML = '<i data-lucide="help-circle" class="w-6 h-6"></i>';
-            badge.className = 'text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/40';
-            badge.innerText = 'Можно рассмотреть';
-            title.innerText = 'Альтернатива даёт умеренную выгоду';
+        const vBox = document.getElementById('verdictBox');
+        const vBadge = document.getElementById('verdictBadge');
+        const vTitle = document.getElementById('verdictTitle');
+
+        if (verdict === 'STRONG_MOVE') {
+            vBox.className = 'mini-card rounded-lg p-3 border-l-4 border-l-emerald-500';
+            vBadge.className = 'text-[10px] font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+            vBadge.innerText = 'ВЫГОДНО';
+            vTitle.innerText = 'Рекомендуется переложить капитал';
+        } else if (verdict === 'CONSIDER') {
+            vBox.className = 'mini-card rounded-lg p-3 border-l-4 border-l-amber-500';
+            vBadge.className = 'text-[10px] font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30';
+            vBadge.innerText = 'НА УСМОТРЕНИЕ';
+            vTitle.innerText = 'Умеренная выгода';
         } else {
-            banner.className = 'rounded-2xl p-5 border shadow-xl flex items-start space-x-4 bg-gray-900/60 border-gray-700/60';
-            iconDiv.className = 'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-gray-800 text-gray-400';
-            iconDiv.innerHTML = '<i data-lucide="check-circle-2" class="w-6 h-6"></i>';
-            badge.className = 'text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gray-800 text-gray-300 border border-gray-700';
-            badge.innerText = 'Оставить на месте';
-            title.innerText = 'Текущее размещение оптимально';
-        }
-        text.innerText = evalRes.verdict_summary;
-
-        // 2. AI Assessment
-        document.getElementById('aiAdviceContent').innerText = aiAdvice;
-
-        // 3. Stats Grid
-        const best = evalRes.best_alternative;
-        if (best && evalRes.verdict !== 'HOLD') {
-            document.getElementById('statBreakEven').innerText = best.break_even_days < 900 ? `${best.break_even_days} дн.` : 'Не окупается';
-            document.getElementById('statGasCost').innerText = `Комиссия перехода: ~$${best.gas_cost_usd}`;
-            document.getElementById('statYearlyGain').innerText = `+$${best.yearly_extra_usd.toLocaleString('en-US')}`;
-            document.getElementById('statDailyGain').innerText = `В день: +$${best.daily_extra_usd.toFixed(2)}`;
-            document.getElementById('statApyDiff').innerText = `+${best.apy_diff}%`;
-        } else {
-            document.getElementById('statBreakEven').innerText = '0 дн.';
-            document.getElementById('statGasCost').innerText = 'Комиссия: $0';
-            document.getElementById('statYearlyGain').innerText = `$0`;
-            document.getElementById('statDailyGain').innerText = 'Оптимально';
-            document.getElementById('statApyDiff').innerText = '0.0%';
+            vBox.className = 'mini-card rounded-lg p-3 border-l-4 border-l-blue-500';
+            vBadge.className = 'text-[10px] font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30';
+            vBadge.innerText = 'ОСТАВИТЬ';
+            vTitle.innerText = 'Оптимально оставить на месте';
         }
 
-        // 4. Alternatives Table
-        const tbody = document.getElementById('altTableBody');
-        const alts = evalRes.alternatives || [];
-        if (!alts.length) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-gray-400">Альтернативных пулов не найдено.</td></tr>`;
+        document.getElementById('currentYieldSummary').innerText = `Текущий доход: $${evalData.current_position.yearly_yield_usd.toFixed(0)}/год`;
+        document.getElementById('verdictSummary').innerText = evalData.verdict_summary;
+
+        const best = evalData.best_alternative;
+        const bestAltContainer = document.getElementById('bestAltContainer');
+
+        if (best) {
+            bestAltContainer.classList.remove('hidden');
+            document.getElementById('bestAltApy').innerText = `${best.apy}%`;
+            document.getElementById('bestAltDiff').innerText = `+${best.apy_diff}%`;
+            document.getElementById('bestAltGas').innerText = `$${best.gas_cost_usd.toFixed(2)}`;
+            document.getElementById('bestAltBreakEven').innerText = best.break_even_days < 999 ? `${best.break_even_days.toFixed(1)} дн.` : '—';
+            document.getElementById('bestAltExtraIncome').innerText = `+$${best.yearly_extra_usd.toFixed(0)}/год`;
         } else {
-            tbody.innerHTML = alts.map(a => {
-                const isPositive = a.apy_diff > 0;
-                return `
-                <tr class="hover:bg-gray-800/40 transition-colors">
-                    <td class="py-2.5 px-4 font-bold text-white">${a.project.charAt(0).toUpperCase() + a.project.slice(1)}</td>
-                    <td class="py-2.5 px-3 text-gray-300">${a.chain}</td>
-                    <td class="py-2.5 px-3 text-right text-gray-400">$${Number(a.tvl_usd).toLocaleString('en-US', { maximumFractionDigits: 0 })}</td>
-                    <td class="py-2.5 px-3 text-right font-black text-emerald-400">${a.apy}%</td>
-                    <td class="py-2.5 px-3 text-right font-bold ${isPositive ? 'text-emerald-400' : 'text-gray-400'}">${isPositive ? '+' : ''}${a.apy_diff}%</td>
-                    <td class="py-2.5 px-3 text-right text-gray-300">${a.break_even_days < 900 ? a.break_even_days + ' дн.' : '—'}</td>
-                    <td class="py-2.5 px-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">${a.safety_grade}</span></td>
-                </tr>
-                `;
-            }).join('');
+            bestAltContainer.classList.add('hidden');
         }
+
+        const adviceBox = document.getElementById('aiAdviceContent');
+        const formattedAdvice = (data.ai_advice || '').replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+        adviceBox.innerHTML = formattedAdvice;
 
         lucide.createIcons();
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 </script>
 {% endblock %}

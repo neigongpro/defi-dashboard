@@ -1,258 +1,242 @@
 {% extends "base.html" %}
 
-{% block title %}DeFi Tier-1 Yield & Rebalance Dashboard{% endblock %}
+{% block title %}DeFi Tier-1 Yields — Dashboard{% endblock %}
 
 {% block content %}
-<!-- Top Market Overview Stats -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <!-- Total TVL -->
-    <div class="glass-card rounded-2xl p-4 border border-gray-800/80">
-        <div class="flex items-center justify-between text-gray-400 mb-2">
-            <span class="text-xs font-semibold uppercase tracking-wider">Мониторинг TVL</span>
-            <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
-                <i data-lucide="shield-check" class="w-4 h-4"></i>
+<!-- Sleek Single-Row Top Summary Bar -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3.5">
+    <!-- Total Monitored TVL -->
+    <div class="mini-card rounded-lg px-3 py-2 flex items-center justify-between">
+        <div>
+            <div class="text-[9px] uppercase tracking-wider text-gray-400 font-medium">TVL Мониторинг</div>
+            <div class="text-sm font-semibold text-white font-mono mt-0.5">
+                ${{ "{:,.0f}".format(overview.total_tvl_monitored) if overview.total_tvl_monitored else "0" }}
             </div>
         </div>
-        <div class="text-2xl font-black text-white">
-            ${{ "{:,.0f}".format(overview.total_tvl_monitored) if overview.total_tvl_monitored else "0" }}
-        </div>
-        <div class="text-xs text-gray-400 mt-1 flex items-center">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse"></span>
-            <span>Топ-10 протоколов ({{ overview.total_pools_count }} пулов)</span>
-        </div>
+        <span class="text-[10px] text-gray-400 font-mono bg-white/[0.04] px-1.5 py-0.5 rounded border border-white/[0.05]">
+            {{ overview.total_pools_count }} пулов
+        </span>
     </div>
 
-    <!-- Avg Stables APY -->
-    <div class="glass-card rounded-2xl p-4 border border-gray-800/80">
-        <div class="flex items-center justify-between text-gray-400 mb-2">
-            <span class="text-xs font-semibold uppercase tracking-wider">Ср. APY Стейблкоинов</span>
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+    <!-- Avg Stable APY -->
+    <div class="mini-card rounded-lg px-3 py-2 flex items-center justify-between">
+        <div>
+            <div class="text-[9px] uppercase tracking-wider text-gray-400 font-medium">Ср. APY Стейблов</div>
+            <div class="text-sm font-semibold text-emerald-400 font-mono mt-0.5">
+                {{ overview.avg_stable_apy }}%
             </div>
         </div>
-        <div class="text-2xl font-black text-emerald-400">
-            {{ overview.avg_stable_apy }}%
-        </div>
-        <div class="text-xs text-gray-400 mt-1">
-            USDC, USDT, DAI, USDS, USDe
-        </div>
+        <span class="text-[10px] text-emerald-400/80 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+            USD
+        </span>
     </div>
 
     <!-- Avg ETH APY -->
-    <div class="glass-card rounded-2xl p-4 border border-gray-800/80">
-        <div class="flex items-center justify-between text-gray-400 mb-2">
-            <span class="text-xs font-semibold uppercase tracking-wider">Ср. APY ETH / LST</span>
-            <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
-                <i data-lucide="coins" class="w-4 h-4"></i>
+    <div class="mini-card rounded-lg px-3 py-2 flex items-center justify-between">
+        <div>
+            <div class="text-[9px] uppercase tracking-wider text-gray-400 font-medium">Ср. APY ETH / LST</div>
+            <div class="text-sm font-semibold text-sky-400 font-mono mt-0.5">
+                {{ overview.avg_eth_apy }}%
             </div>
         </div>
-        <div class="text-2xl font-black text-purple-400">
-            {{ overview.avg_eth_apy }}%
-        </div>
-        <div class="text-xs text-gray-400 mt-1">
-            WETH, wstETH, cbETH
-        </div>
+        <span class="text-[10px] text-sky-400/80 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">
+            ETH
+        </span>
     </div>
 
-    <!-- Top Safe Pool -->
-    <div class="glass-card rounded-2xl p-4 border border-gray-800/80">
-        <div class="flex items-center justify-between text-gray-400 mb-2">
-            <span class="text-xs font-semibold uppercase tracking-wider">Топ Доходный Пул</span>
-            <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
-                <i data-lucide="flame" class="w-4 h-4"></i>
+    <!-- Top Pool Highlight -->
+    <div class="mini-card rounded-lg px-3 py-2 flex items-center justify-between">
+        <div class="truncate mr-2">
+            <div class="text-[9px] uppercase tracking-wider text-gray-400 font-medium">Топ Доходность</div>
+            {% if overview.top_safe_yield %}
+            <div class="text-xs font-semibold text-gray-200 truncate mt-0.5 flex items-center space-x-1">
+                <span>{{ overview.top_safe_yield.project | capitalize }}</span>
+                <span class="text-gray-400 text-[10px]">({{ overview.top_safe_yield.chain }})</span>
             </div>
+            {% else %}
+            <div class="text-xs text-gray-400 mt-0.5">Загрузка...</div>
+            {% endif %}
         </div>
         {% if overview.top_safe_yield %}
-        <div class="text-xl font-bold text-white truncate">
-            {{ overview.top_safe_yield.project | capitalize }} ({{ overview.top_safe_yield.chain }})
-        </div>
-        <div class="text-xs text-amber-400 font-semibold mt-1 flex items-center justify-between">
-            <span class="truncate max-w-[130px]">{{ overview.top_safe_yield.symbol }}</span>
-            <span class="bg-amber-500/20 px-2 py-0.5 rounded text-amber-300">{{ overview.top_safe_yield.apy }}% APY</span>
-        </div>
-        {% else %}
-        <div class="text-lg text-gray-400">Загрузка данных...</div>
+        <span class="text-[10px] font-mono font-semibold text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 shrink-0">
+            {{ overview.top_safe_yield.apy }}%
+        </span>
         {% endif %}
     </div>
 </div>
 
-<!-- Filters & Control Bar -->
-<div class="glass-card rounded-2xl p-4 mb-6 border border-gray-800/80">
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <!-- Asset Filter Pills (Focus on Stablecoins) -->
-        <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 lg:pb-0" id="assetFilterGroup">
-            <span class="text-xs font-semibold text-gray-400 uppercase mr-1 flex items-center">
-                <i data-lucide="coins" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> Стейблы:
-            </span>
-            <button onclick="setAssetFilter('')" class="asset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white transition-all shadow-sm" data-asset="">🪙 Все стейблы</button>
-            <button onclick="setAssetFilter('USDC')" class="asset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all" data-asset="USDC">USDC</button>
-            <button onclick="setAssetFilter('USDT')" class="asset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all" data-asset="USDT">USDT</button>
-            <button onclick="setAssetFilter('DAI')" class="asset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all" data-asset="DAI">DAI / USDS</button>
-            <button onclick="setAssetFilter('USDE')" class="asset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all" data-asset="USDE">USDe</button>
-            <button onclick="setAssetFilter('PYUSD')" class="asset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all" data-asset="PYUSD">PYUSD</button>
-            <button onclick="setAssetFilter('ALL_ASSETS')" class="asset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-400 hover:bg-gray-700 transition-all" data-asset="ALL_ASSETS">🌐 Все активы (вкл. ETH/BTC)</button>
+<!-- Compact Control & Filter Bar -->
+<div class="mini-card rounded-lg p-2.5 mb-3">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+        <!-- Asset Filter Pills -->
+        <div class="flex items-center space-x-1 overflow-x-auto pb-0.5 lg:pb-0" id="assetFilterGroup">
+            <span class="text-[10px] font-semibold text-gray-400 uppercase mr-1 shrink-0">Стейблы:</span>
+            <button onclick="setAssetFilter('')" class="asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all shrink-0" data-asset="">🪙 Все</button>
+            <button onclick="setAssetFilter('USDC')" class="asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.04] text-gray-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.04] transition-all shrink-0" data-asset="USDC">USDC</button>
+            <button onclick="setAssetFilter('USDT')" class="asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.04] text-gray-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.04] transition-all shrink-0" data-asset="USDT">USDT</button>
+            <button onclick="setAssetFilter('DAI')" class="asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.04] text-gray-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.04] transition-all shrink-0" data-asset="DAI">DAI / USDS</button>
+            <button onclick="setAssetFilter('USDE')" class="asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.04] text-gray-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.04] transition-all shrink-0" data-asset="USDE">USDe</button>
+            <button onclick="setAssetFilter('PYUSD')" class="asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.04] text-gray-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.04] transition-all shrink-0" data-asset="PYUSD">PYUSD</button>
+            <button onclick="setAssetFilter('ALL_ASSETS')" class="asset-btn px-2 py-1 rounded-md text-[10px] font-medium bg-white/[0.02] text-gray-400 hover:text-gray-200 border border-white/[0.04] transition-all shrink-0" data-asset="ALL_ASSETS">🌐 Все активы</button>
         </div>
 
-        <!-- Dropdowns: Category, Multi-chain, Sort, Search -->
-        <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Category -->
-            <select id="categoryFilter" onchange="applyFilters()" class="bg-gray-800/90 text-xs text-gray-200 rounded-lg px-3 py-1.5 border border-gray-700 focus:outline-none focus:border-blue-500">
-                <option value="lending" selected>🏦 Только Lending (Депозиты)</option>
-                <option value="">Все категории (Lending + DEX + Yield)</option>
-                <option value="dex">📊 Только DEX (Ликвидность LP)</option>
+        <!-- Controls: Category, Multi-chain, Sort, Search -->
+        <div class="flex flex-wrap items-center gap-1.5">
+            <!-- Category Selector -->
+            <select id="categoryFilter" onchange="applyFilters()" class="bg-[#0f121a] text-[11px] text-gray-300 rounded-md px-2.5 py-1 border border-white/[0.07] focus:outline-none focus:border-emerald-500/50">
+                <option value="lending" selected>🏦 Только Lending</option>
+                <option value="">Все категории</option>
+                <option value="dex">📊 Только DEX (LP)</option>
                 <option value="yield">🌾 Yield & Staking</option>
             </select>
 
             <!-- Multi-Select Chain Dropdown -->
             <div class="relative">
-                <button type="button" id="chainDropdownBtn" onclick="toggleChainDropdown()" class="bg-gray-800/90 text-xs text-gray-200 rounded-lg px-3 py-1.5 border border-gray-700 flex items-center justify-between space-x-2 focus:outline-none hover:border-blue-500 transition-colors">
+                <button type="button" id="chainDropdownBtn" onclick="toggleChainDropdown()" class="bg-[#0f121a] text-[11px] text-gray-300 rounded-md px-2.5 py-1 border border-white/[0.07] flex items-center justify-between space-x-1.5 focus:outline-none hover:border-white/[0.15] transition-colors">
                     <span id="chainDropdownLabel">🌐 Сети: Все (7)</span>
                     <i data-lucide="chevron-down" class="w-3 h-3 text-gray-400"></i>
                 </button>
 
-                <!-- Multi-select popup -->
-                <div id="chainDropdownMenu" class="hidden absolute right-0 mt-1 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 p-2 text-xs">
-                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-800 text-[11px] text-gray-400">
-                        <span>Мультивыбор сетей</span>
+                <!-- Checkbox Menu Popup -->
+                <div id="chainDropdownMenu" class="hidden absolute right-0 mt-1 w-52 bg-[#0d0f17] border border-white/[0.1] rounded-lg shadow-2xl z-50 p-2 text-[11px]">
+                    <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-white/[0.06] text-[10px] text-gray-400">
+                        <span>Выбор сетей</span>
                         <div class="space-x-1">
-                            <button onclick="selectAllChains(true)" class="text-blue-400 hover:underline">Все</button>
-                            <span>|</span>
-                            <button onclick="selectAllChains(false)" class="text-red-400 hover:underline">Сброс</button>
+                            <button onclick="selectAllChains(true)" class="text-emerald-400 hover:underline">Все</button>
+                            <span>·</span>
+                            <button onclick="selectAllChains(false)" class="text-rose-400 hover:underline">Сброс</button>
                         </div>
                     </div>
 
-                    <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1" id="chainCheckboxList">
-                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-800/60 p-1 rounded">
-                            <input type="checkbox" value="Ethereum" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 text-blue-500 focus:ring-0">
+                    <div class="space-y-1 max-h-44 overflow-y-auto pr-0.5" id="chainCheckboxList">
+                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-white/[0.04] p-1 rounded">
+                            <input type="checkbox" value="Ethereum" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 bg-transparent text-emerald-500 focus:ring-0 w-3.5 h-3.5">
                             <span>Ethereum</span>
                         </label>
-                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-800/60 p-1 rounded">
-                            <input type="checkbox" value="Base" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 text-blue-500 focus:ring-0">
+                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-white/[0.04] p-1 rounded">
+                            <input type="checkbox" value="Base" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 bg-transparent text-emerald-500 focus:ring-0 w-3.5 h-3.5">
                             <span>Base</span>
                         </label>
-                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-800/60 p-1 rounded">
-                            <input type="checkbox" value="Arbitrum" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 text-blue-500 focus:ring-0">
+                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-white/[0.04] p-1 rounded">
+                            <input type="checkbox" value="Arbitrum" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 bg-transparent text-emerald-500 focus:ring-0 w-3.5 h-3.5">
                             <span>Arbitrum</span>
                         </label>
-                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-800/60 p-1 rounded">
-                            <input type="checkbox" value="Optimism" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 text-blue-500 focus:ring-0">
+                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-white/[0.04] p-1 rounded">
+                            <input type="checkbox" value="Optimism" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 bg-transparent text-emerald-500 focus:ring-0 w-3.5 h-3.5">
                             <span>Optimism</span>
                         </label>
-                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-800/60 p-1 rounded">
-                            <input type="checkbox" value="Polygon" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 text-blue-500 focus:ring-0">
+                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-white/[0.04] p-1 rounded">
+                            <input type="checkbox" value="Polygon" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 bg-transparent text-emerald-500 focus:ring-0 w-3.5 h-3.5">
                             <span>Polygon</span>
                         </label>
-                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-800/60 p-1 rounded">
-                            <input type="checkbox" value="BSC" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 text-blue-500 focus:ring-0">
+                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-white/[0.04] p-1 rounded">
+                            <input type="checkbox" value="BSC" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 bg-transparent text-emerald-500 focus:ring-0 w-3.5 h-3.5">
                             <span>BNB Chain (BSC)</span>
                         </label>
-                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-800/60 p-1 rounded">
-                            <input type="checkbox" value="Avalanche" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 text-blue-500 focus:ring-0">
+                        <label class="flex items-center space-x-2 cursor-pointer hover:bg-white/[0.04] p-1 rounded">
+                            <input type="checkbox" value="Avalanche" checked onchange="onChainCheckboxChange()" class="chain-cb rounded border-gray-700 bg-transparent text-emerald-500 focus:ring-0 w-3.5 h-3.5">
                             <span>Avalanche</span>
                         </label>
                     </div>
 
-                    <div class="pt-2 mt-2 border-t border-gray-800 flex justify-between">
-                        <button onclick="invertChainSelection()" class="text-[10px] text-gray-400 hover:text-white">Инвертировать (Все кроме)</button>
-                        <button onclick="toggleChainDropdown()" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px]">Готово</button>
+                    <div class="pt-1.5 mt-1.5 border-t border-white/[0.06] flex items-center justify-between">
+                        <button onclick="invertChainSelection()" class="text-[10px] text-gray-400 hover:text-white">Все кроме...</button>
+                        <button onclick="toggleChainDropdown()" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-medium">Закрыть</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Sort By -->
-            <select id="sortFilter" onchange="applyFilters()" class="bg-gray-800/90 text-xs text-gray-200 rounded-lg px-3 py-1.5 border border-gray-700 focus:outline-none focus:border-blue-500">
-                <option value="apy">⚡ Макс. Доходность (APY ↓)</option>
-                <option value="tvl">💰 Макс. Ликвидность (TVL ↓)</option>
-                <option value="stability">🛡️ Стабильность ставки</option>
-                <option value="real_yield">💎 Real Yield (Органика)</option>
+            <!-- Sort By Selector -->
+            <select id="sortFilter" onchange="applyFilters()" class="bg-[#0f121a] text-[11px] text-gray-300 rounded-md px-2.5 py-1 border border-white/[0.07] focus:outline-none focus:border-emerald-500/50">
+                <option value="apy">⚡ Доходность (APY ↓)</option>
+                <option value="tvl">💰 Ликвидность (TVL ↓)</option>
+                <option value="stability">🛡️ Стабильность</option>
+                <option value="real_yield">💎 Real Yield</option>
             </select>
 
             <!-- Search input -->
             <div class="relative">
-                <input type="text" id="searchInput" onkeyup="debounceSearch()" placeholder="Поиск токена..." class="bg-gray-800/90 text-xs text-gray-200 rounded-lg pl-8 pr-3 py-1.5 border border-gray-700 focus:outline-none focus:border-blue-500 w-32 sm:w-40">
-                <i data-lucide="search" class="w-3.5 h-3.5 text-gray-500 absolute left-2.5 top-2"></i>
+                <input type="text" id="searchInput" onkeyup="debounceSearch()" placeholder="Поиск токена..." class="bg-[#0f121a] text-[11px] text-gray-200 rounded-md pl-7 pr-2.5 py-1 border border-white/[0.07] focus:outline-none focus:border-emerald-500/50 w-28 sm:w-36 placeholder:text-gray-600">
+                <i data-lucide="search" class="w-3 h-3 text-gray-500 absolute left-2 top-1.5"></i>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Pools Table Card -->
-<div class="glass-card rounded-2xl border border-gray-800/80 overflow-hidden shadow-2xl">
-    <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between flex-wrap gap-2">
-        <div class="flex items-center space-x-3">
-            <h2 class="text-base font-bold text-white flex items-center">
-                <i data-lucide="layers" class="w-4 h-4 mr-2 text-emerald-400"></i>
-                <span>Рейтинг Tier-1 DeFi Депозитов</span>
-                <span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400 font-normal" id="poolCountBadge">
-                    {{ pools | length }} пулов
-                </span>
-            </h2>
-            <span class="text-[11px] text-gray-500 hidden sm:inline flex items-center">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
-                15-мин ончейн замеры
+<!-- High-Density Minimalist Table -->
+<div class="mini-card rounded-lg overflow-hidden">
+    <!-- Table Header Info Bar -->
+    <div class="px-3.5 py-2 border-b border-white/[0.05] flex items-center justify-between text-[11px]">
+        <div class="flex items-center space-x-2">
+            <span class="font-semibold text-gray-200">Пулы Tier-1 Протоколов</span>
+            <span class="text-[10px] font-mono text-gray-400 bg-white/[0.04] px-1.5 py-0.2 rounded border border-white/[0.05]" id="poolCountBadge">
+                {{ pools | length }} пулов
             </span>
         </div>
-        <a href="/advisor" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center transition-colors">
-            <span>Калькулятор ребаланса</span>
-            <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+        <a href="/advisor" class="text-emerald-400 hover:text-emerald-300 flex items-center font-medium transition-colors">
+            <span>AI Калькулятор</span>
+            <i data-lucide="arrow-right" class="w-3 h-3 ml-1"></i>
         </a>
     </div>
 
-    <!-- Table Container -->
+    <!-- Table -->
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-gray-900/60 text-gray-400 uppercase text-[11px] font-semibold border-b border-gray-800 tracking-wider">
+        <table class="w-full text-left text-[11px] border-collapse">
+            <thead class="bg-[#07080b]/70 text-gray-400 uppercase text-[10px] font-medium border-b border-white/[0.05] tracking-wider">
                 <tr>
-                    <th class="py-3 px-4">Протокол / Сеть</th>
-                    <th class="py-3 px-3">Актив & Пул</th>
-                    <th class="py-3 px-3">Категория</th>
-                    <th class="py-3 px-4 text-right">TVL ($)</th>
-                    <th class="py-3 px-4 text-right">APY (Текущий)</th>
-                    <th class="py-3 px-3 text-right hidden sm:table-cell">30d Ср. APY</th>
-                    <th class="py-3 px-3 text-center hidden md:table-cell">Стабильность</th>
-                    <th class="py-3 px-3 text-center">Безопасность</th>
-                    <th class="py-3 px-4 text-center">Действие</th>
+                    <th class="py-2 px-3 font-medium">Протокол</th>
+                    <th class="py-2 px-2.5 font-medium">Сеть</th>
+                    <th class="py-2 px-2.5 font-medium">Актив / Пул</th>
+                    <th class="py-2 px-2 font-medium">Тип</th>
+                    <th class="py-2 px-3 text-right font-medium">TVL</th>
+                    <th class="py-2 px-3 text-right font-medium">APY (Тек.)</th>
+                    <th class="py-2 px-2.5 text-right font-medium hidden sm:table-cell">30d Ср.</th>
+                    <th class="py-2 px-2.5 text-center font-medium hidden md:table-cell">Стабильность</th>
+                    <th class="py-2 px-2 text-center font-medium">Рейтинг</th>
+                    <th class="py-2 px-3 text-center font-medium">Действие</th>
                 </tr>
             </thead>
-            <tbody id="poolsTableBody" class="divide-y divide-gray-800/50">
+            <tbody id="poolsTableBody" class="divide-y divide-white/[0.03]">
                 {% for p in pools %}
-                <tr class="hover:bg-gray-800/40 transition-colors group">
-                    <!-- Protocol & Chain & Direct App Link -->
-                    <td class="py-3 px-4">
-                        <div class="flex items-center space-x-2.5">
-                            <div class="w-7 h-7 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center font-bold text-xs text-blue-400">
+                <tr class="hover:bg-white/[0.02] transition-colors group">
+                    <!-- Protocol & Direct App Link -->
+                    <td class="py-2 px-3">
+                        <div class="flex items-center space-x-1.5">
+                            <div class="w-5 h-5 rounded bg-white/[0.05] border border-white/[0.08] flex items-center justify-center font-bold text-[9px] text-gray-300 shrink-0">
                                 {{ p.project[:2] | upper }}
                             </div>
-                            <div>
-                                <div class="flex items-center space-x-1">
-                                    <a href="/pool/{{ p.pool_id }}" class="font-bold text-gray-200 hover:text-blue-400 transition-colors">
-                                        {{ p.project | capitalize }}
-                                    </a>
-                                    <a href="{{ p.protocol_url }}" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-blue-300 p-0.5 rounded transition-colors" title="Открыть официальный сайт {{ p.project }}">
-                                        <i data-lucide="external-link" class="w-3 h-3"></i>
-                                    </a>
-                                </div>
-                                <div class="text-[11px] text-gray-400 flex items-center mt-0.5">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400 mr-1"></span>
-                                    <span>{{ p.chain }}</span>
-                                </div>
+                            <div class="flex items-center space-x-1">
+                                <a href="/pool/{{ p.pool_id }}" class="font-semibold text-gray-200 hover:text-emerald-400 transition-colors">
+                                    {{ p.project | capitalize }}
+                                </a>
+                                <a href="{{ p.protocol_url }}" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-emerald-300 p-0.5 transition-colors" title="Перейти на официальный сайт {{ p.project }}">
+                                    <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                                </a>
                             </div>
                         </div>
                     </td>
 
+                    <!-- Chain -->
+                    <td class="py-2 px-2.5 text-gray-400">
+                        <div class="flex items-center space-x-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400/80"></span>
+                            <span class="text-[11px]">{{ p.chain }}</span>
+                        </div>
+                    </td>
+
                     <!-- Symbol & Verification Tag -->
-                    <td class="py-3 px-3 font-semibold text-white">
+                    <td class="py-2 px-2.5">
                         <div class="flex flex-col">
                             <div class="flex items-center space-x-1">
-                                <span class="px-2 py-0.5 rounded bg-gray-800 text-gray-200 border border-gray-700/60 font-mono text-[11px]">
+                                <span class="font-mono font-semibold text-gray-200">
                                     {{ p.clean_symbol if p.clean_symbol else p.symbol }}
                                 </span>
                                 {% if p.is_canonical %}
-                                <span class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Канонический стейблкоин">✓ Core</span>
+                                <span class="text-[8px] px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">Core</span>
                                 {% endif %}
                             </div>
                             {% if not p.is_canonical and p.symbol != p.clean_symbol %}
-                            <span class="text-[10px] text-gray-400 font-normal truncate max-w-[120px]" title="Пул / Vault: {{ p.symbol }}">
+                            <span class="text-[9px] text-gray-400 truncate max-w-[110px]" title="{{ p.symbol }}">
                                 {{ p.symbol }}
                             </span>
                             {% endif %}
@@ -260,67 +244,67 @@
                     </td>
 
                     <!-- Category -->
-                    <td class="py-3 px-3">
+                    <td class="py-2 px-2">
                         {% if p.category == 'lending' %}
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Lending</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Lend</span>
                         {% elif p.category == 'dex' %}
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">DEX</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium">DEX</span>
                         {% else %}
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">Yield</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">Yield</span>
                         {% endif %}
                     </td>
 
                     <!-- TVL -->
-                    <td class="py-3 px-4 text-right font-medium text-gray-300">
+                    <td class="py-2 px-3 text-right font-mono text-gray-300">
                         ${{ "{:,.0f}".format(p.tvl_usd) }}
                     </td>
 
                     <!-- APY -->
-                    <td class="py-3 px-4 text-right">
-                        <div class="font-black text-sm text-emerald-400">
+                    <td class="py-2 px-3 text-right">
+                        <div class="font-mono font-bold text-emerald-400 text-[12px]">
                             {{ p.apy }}%
                         </div>
-                        <div class="text-[10px] text-gray-400 flex items-center justify-end space-x-1 mt-0.5">
-                            <span title="Real Yield (органический доход)">Base: {{ p.apy_base }}%</span>
+                        <div class="text-[9px] text-gray-400 flex items-center justify-end space-x-1 font-mono">
+                            <span>B: {{ p.apy_base }}%</span>
                             {% if p.apy_reward > 0 %}
-                            <span class="text-amber-400 font-medium" title="Бонусы токенами">+{{ p.apy_reward }}% 🎁</span>
+                            <span class="text-amber-400">+{{ p.apy_reward }}%</span>
                             {% endif %}
                         </div>
                     </td>
 
                     <!-- 30d Avg APY -->
-                    <td class="py-3 px-3 text-right text-gray-400 hidden sm:table-cell">
+                    <td class="py-2 px-2.5 text-right font-mono text-gray-400 hidden sm:table-cell">
                         {{ p.apy_avg_30d }}%
                     </td>
 
                     <!-- Stability Score -->
-                    <td class="py-3 px-3 text-center hidden md:table-cell">
+                    <td class="py-2 px-2.5 text-center hidden md:table-cell">
                         <div class="inline-flex items-center space-x-1">
-                            <div class="w-16 bg-gray-800 rounded-full h-1.5 overflow-hidden">
-                                <div class="bg-gradient-to-r from-blue-500 to-emerald-400 h-1.5 rounded-full" style="width: {{ (p.stability_score * 100) | int }}%"></div>
+                            <div class="w-10 bg-white/[0.05] rounded-full h-1 overflow-hidden">
+                                <div class="bg-emerald-400 h-1 rounded-full" style="width: {{ (p.stability_score * 100) | int }}%"></div>
                             </div>
-                            <span class="text-[10px] text-gray-400 font-mono">{{ p.stability_score }}</span>
+                            <span class="text-[9px] text-gray-400 font-mono">{{ p.stability_score }}</span>
                         </div>
                     </td>
 
                     <!-- Safety Grade -->
-                    <td class="py-3 px-3 text-center">
+                    <td class="py-2 px-2 text-center">
                         {% if p.is_spike %}
-                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40" title="Внимание: кратковременный всплеск ставки">
-                            ⚠️ Спайк
+                        <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            Спайк
                         </span>
                         {% else %}
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold {% if p.safety_grade == 'AAA' %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/30{% elif p.safety_grade == 'AA' %}bg-blue-500/20 text-blue-300 border border-blue-500/30{% else %}bg-gray-800 text-gray-300 border border-gray-700{% endif %}">
+                        <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold {% if p.safety_grade == 'AAA' %}bg-emerald-500/15 text-emerald-300 border border-emerald-500/25{% elif p.safety_grade == 'AA' %}bg-sky-500/15 text-sky-300 border border-sky-500/25{% else %}bg-white/[0.04] text-gray-300 border border-white/[0.08]{% endif %}">
                             {{ p.safety_grade }}
                         </span>
                         {% endif %}
                     </td>
 
-                    <!-- Action -->
-                    <td class="py-3 px-4 text-center">
-                        <a href="/pool/{{ p.pool_id }}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-gray-800 hover:bg-blue-600 text-gray-300 hover:text-white transition-all border border-gray-700">
+                    <!-- Action Link -->
+                    <td class="py-2 px-3 text-center">
+                        <a href="/pool/{{ p.pool_id }}" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-white/[0.04] hover:bg-emerald-500/20 text-gray-300 hover:text-emerald-300 transition-all border border-white/[0.06]">
                             <span>График</span>
-                            <i data-lucide="line-chart" class="w-3 h-3 ml-1"></i>
+                            <i data-lucide="line-chart" class="w-2.5 h-2.5 ml-1"></i>
                         </a>
                     </td>
                 </tr>
@@ -348,9 +332,9 @@
 
         document.querySelectorAll('.asset-btn').forEach(btn => {
             if (btn.getAttribute('data-asset') === asset) {
-                btn.className = 'asset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white transition-all shadow-sm';
+                btn.className = 'asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all shrink-0';
             } else {
-                btn.className = 'asset-btn px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all';
+                btn.className = 'asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.04] text-gray-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.04] transition-all shrink-0';
             }
         });
         applyFilters();
@@ -361,7 +345,6 @@
         menu.classList.toggle('hidden');
     }
 
-    // Close chain dropdown if clicked outside
     document.addEventListener('click', function(e) {
         const btn = document.getElementById('chainDropdownBtn');
         const menu = document.getElementById('chainDropdownMenu');
@@ -371,8 +354,7 @@
     });
 
     function getSelectedChains() {
-        const checkedBoxes = Array.from(document.querySelectorAll('.chain-cb:checked')).map(cb => cb.value);
-        return checkedBoxes;
+        return Array.from(document.querySelectorAll('.chain-cb:checked')).map(cb => cb.value);
     }
 
     function onChainCheckboxChange() {
@@ -400,17 +382,17 @@
         if (checked.length === allBoxes.length) {
             label.innerText = `🌐 Сети: Все (${allBoxes.length})`;
         } else if (checked.length === 0) {
-            label.innerText = `🌐 Сети: Ничего не выбрано`;
+            label.innerText = `🌐 Сети: Нет`;
         } else if (checked.length === 1) {
-            label.innerText = `🌐 Сеть: ${checked[0].value}`;
+            label.innerText = `🌐 ${checked[0].value}`;
         } else {
-            label.innerText = `🌐 Сети: Выбрано (${checked.length})`;
+            label.innerText = `🌐 Выбрано (${checked.length})`;
         }
     }
 
     function debounceSearch() {
         clearTimeout(searchDebounceTimer);
-        searchDebounceTimer = setTimeout(applyFilters, 300);
+        searchDebounceTimer = setTimeout(applyFilters, 250);
     }
 
     async function applyFilters() {
@@ -433,9 +415,7 @@
             const res = await fetch(`/api/pools?${params.toString()}`);
             let data = await res.json();
 
-            if (selectedChains.length === 0) {
-                data = [];
-            }
+            if (selectedChains.length === 0) data = [];
 
             if (search) {
                 data = data.filter(p => 
@@ -456,52 +436,52 @@
         document.getElementById('poolCountBadge').innerText = `${pools.length} пулов`;
 
         if (!pools.length) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-10 text-gray-400">Ничего не найдено по заданным фильтрам. Попробуйте изменить параметры сетей или активов.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-gray-500 text-xs">Ничего не найдено по заданным фильтрам.</td></tr>`;
             return;
         }
 
         tbody.innerHTML = pools.map(p => {
             const tvlFmt = Number(p.tvl_usd).toLocaleString('en-US', { maximumFractionDigits: 0 });
             const catBadge = p.category === 'lending' 
-                ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Lending</span>'
-                : (p.category === 'dex' ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">DEX</span>' : '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">Yield</span>');
+                ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Lend</span>'
+                : (p.category === 'dex' ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium">DEX</span>' : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">Yield</span>');
 
             const safetyBadge = p.is_spike 
-                ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40" title="Внимание: всплеск ставки">⚠️ Спайк</span>'
-                : `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.safety_grade === 'AAA' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : (p.safety_grade === 'AA' ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' : 'bg-gray-800 text-gray-300 border border-gray-700')}">${p.safety_grade}</span>`;
+                ? '<span class="px-1 py-0.2 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">Спайк</span>'
+                : `<span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold ${p.safety_grade === 'AAA' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25' : (p.safety_grade === 'AA' ? 'bg-sky-500/15 text-sky-300 border border-sky-500/25' : 'bg-white/[0.04] text-gray-300 border border-white/[0.08]')}">${p.safety_grade}</span>`;
 
-            const canonicalTag = p.is_canonical ? '<span class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" title="Канонический стейблкоин">✓ Core</span>' : '';
+            const canonicalTag = p.is_canonical ? '<span class="text-[8px] px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">Core</span>' : '';
             const vaultSubtext = (!p.is_canonical && p.symbol !== p.clean_symbol) 
-                ? `<span class="text-[10px] text-gray-400 font-normal truncate max-w-[120px]" title="Пул: ${p.symbol}">${p.symbol}</span>` 
+                ? `<span class="text-[9px] text-gray-500 truncate max-w-[110px]" title="${p.symbol}">${p.symbol}</span>` 
                 : '';
 
             return `
-            <tr class="hover:bg-gray-800/40 transition-colors group">
-                <td class="py-3 px-4">
-                    <div class="flex items-center space-x-2.5">
-                        <div class="w-7 h-7 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center font-bold text-xs text-blue-400">
+            <tr class="hover:bg-white/[0.02] transition-colors group">
+                <td class="py-2 px-3">
+                    <div class="flex items-center space-x-1.5">
+                        <div class="w-5 h-5 rounded bg-white/[0.05] border border-white/[0.08] flex items-center justify-center font-bold text-[9px] text-gray-300 shrink-0">
                             ${p.project.substring(0, 2).toUpperCase()}
                         </div>
-                        <div>
-                            <div class="flex items-center space-x-1">
-                                <a href="/pool/${p.pool_id}" class="font-bold text-gray-200 hover:text-blue-400 transition-colors">
-                                    ${p.project.charAt(0).toUpperCase() + p.project.slice(1)}
-                                </a>
-                                <a href="${p.protocol_url || '#'}" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-blue-300 p-0.5 rounded transition-colors" title="Официальный сайт ${p.project}">
-                                    <i data-lucide="external-link" class="w-3 h-3"></i>
-                                </a>
-                            </div>
-                            <div class="text-[11px] text-gray-400 flex items-center mt-0.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-400 mr-1"></span>
-                                <span>${p.chain}</span>
-                            </div>
+                        <div class="flex items-center space-x-1">
+                            <a href="/pool/${p.pool_id}" class="font-semibold text-gray-200 hover:text-emerald-400 transition-colors">
+                                ${p.project.charAt(0).toUpperCase() + p.project.slice(1)}
+                            </a>
+                            <a href="${p.protocol_url || '#'}" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-emerald-300 p-0.5 transition-colors" title="Официальный сайт ${p.project}">
+                                <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                            </a>
                         </div>
                     </div>
                 </td>
-                <td class="py-3 px-3 font-semibold text-white">
+                <td class="py-2 px-2.5 text-gray-400">
+                    <div class="flex items-center space-x-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400/80"></span>
+                        <span>${p.chain}</span>
+                    </div>
+                </td>
+                <td class="py-2 px-2.5">
                     <div class="flex flex-col">
                         <div class="flex items-center space-x-1">
-                            <span class="px-2 py-0.5 rounded bg-gray-800 text-gray-200 border border-gray-700/60 font-mono text-[11px]">
+                            <span class="font-mono font-semibold text-gray-200">
                                 ${p.clean_symbol || p.symbol}
                             </span>
                             ${canonicalTag}
@@ -509,29 +489,29 @@
                         ${vaultSubtext}
                     </div>
                 </td>
-                <td class="py-3 px-3">${catBadge}</td>
-                <td class="py-3 px-4 text-right font-medium text-gray-300">$${tvlFmt}</td>
-                <td class="py-3 px-4 text-right">
-                    <div class="font-black text-sm text-emerald-400">${p.apy}%</div>
-                    <div class="text-[10px] text-gray-400 flex items-center justify-end space-x-1 mt-0.5">
-                        <span>Base: ${p.apy_base}%</span>
-                        ${p.apy_reward > 0 ? `<span class="text-amber-400 font-medium">+${p.apy_reward}% 🎁</span>` : ''}
+                <td class="py-2 px-2">${catBadge}</td>
+                <td class="py-2 px-3 text-right font-mono text-gray-300">$${tvlFmt}</td>
+                <td class="py-2 px-3 text-right">
+                    <div class="font-mono font-bold text-emerald-400 text-[12px]">${p.apy}%</div>
+                    <div class="text-[9px] text-gray-500 flex items-center justify-end space-x-1 font-mono">
+                        <span>B: ${p.apy_base}%</span>
+                        ${p.apy_reward > 0 ? `<span class="text-amber-400">+${p.apy_reward}%</span>` : ''}
                     </div>
                 </td>
-                <td class="py-3 px-3 text-right text-gray-400 hidden sm:table-cell">${p.apy_avg_30d}%</td>
-                <td class="py-3 px-3 text-center hidden md:table-cell">
+                <td class="py-2 px-2.5 text-right font-mono text-gray-400 hidden sm:table-cell">${p.apy_avg_30d}%</td>
+                <td class="py-2 px-2.5 text-center hidden md:table-cell">
                     <div class="inline-flex items-center space-x-1">
-                        <div class="w-16 bg-gray-800 rounded-full h-1.5 overflow-hidden">
-                            <div class="bg-gradient-to-r from-blue-500 to-emerald-400 h-1.5 rounded-full" style="width: ${Math.round(p.stability_score * 100)}%"></div>
+                        <div class="w-10 bg-white/[0.05] rounded-full h-1 overflow-hidden">
+                            <div class="bg-emerald-400 h-1 rounded-full" style="width: ${Math.round(p.stability_score * 100)}%"></div>
                         </div>
-                        <span class="text-[10px] text-gray-400 font-mono">${p.stability_score}</span>
+                        <span class="text-[9px] text-gray-500 font-mono">${p.stability_score}</span>
                     </div>
                 </td>
-                <td class="py-3 px-3 text-center">${safetyBadge}</td>
-                <td class="py-3 px-4 text-center">
-                    <a href="/pool/${p.pool_id}" class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-gray-800 hover:bg-blue-600 text-gray-300 hover:text-white transition-all border border-gray-700">
+                <td class="py-2 px-2 text-center">${safetyBadge}</td>
+                <td class="py-2 px-3 text-center">
+                    <a href="/pool/${p.pool_id}" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-white/[0.04] hover:bg-emerald-500/20 text-gray-300 hover:text-emerald-300 transition-all border border-white/[0.06]">
                         <span>График</span>
-                        <i data-lucide="line-chart" class="w-3 h-3 ml-1"></i>
+                        <i data-lucide="line-chart" class="w-2.5 h-2.5 ml-1"></i>
                     </a>
                 </td>
             </tr>
@@ -541,7 +521,7 @@
         lucide.createIcons();
     }
 
-    // Auto-refresh background poll every 60s
+    // Live refresh every 60s
     setInterval(applyFilters, 60000);
 </script>
 {% endblock %}
