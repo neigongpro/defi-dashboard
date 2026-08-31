@@ -148,6 +148,11 @@
         const apyData = history.map(h => h.apy);
         const baseApyData = history.map(h => h.apy_base || 0);
 
+        // Gradient for total APY
+        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
         chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
@@ -157,10 +162,11 @@
                         label: 'Total APY (%)',
                         data: apyData,
                         borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        backgroundColor: gradient,
                         borderWidth: 2.5,
                         fill: true,
-                        tension: 0.3,
+                        tension: 0.4,
+                        cubicInterpolationMode: 'monotone',
                         pointRadius: history.length > 50 ? 0 : 3,
                         pointHoverRadius: 6
                     },
@@ -171,7 +177,8 @@
                         borderDash: [4, 4],
                         borderWidth: 1.8,
                         fill: false,
-                        tension: 0.3,
+                        tension: 0.4,
+                        cubicInterpolationMode: 'monotone',
                         pointRadius: 0
                     }
                 ]
@@ -179,6 +186,10 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: {
+                    duration: 750,
+                    easing: 'easeInOutQuart'
+                },
                 interaction: {
                     intersect: false,
                     mode: 'index'

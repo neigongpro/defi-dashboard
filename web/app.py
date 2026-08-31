@@ -98,7 +98,7 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 @app.get("/", response_class=HTMLResponse)
 async def view_dashboard(request: Request):
     overview = get_market_overview()
-    pools = get_enriched_pools(limit=50)
+    pools = get_enriched_pools(stables_only=True, limit=50)
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
@@ -151,9 +151,10 @@ async def api_pools(
     chain: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
     protocol: Optional[str] = Query(None),
+    stables_only: bool = Query(True),
     min_tvl: float = Query(1_000_000),
     sort_by: str = Query("apy"),
-    limit: int = Query(50)
+    limit: int = Query(60)
 ):
     assets_list = [a.strip().upper() for a in asset.split(",") if a.strip()] if asset else None
     chains_list = [c.strip() for c in chain.split(",") if c.strip()] if chain else None
@@ -164,6 +165,7 @@ async def api_pools(
         chains=chains_list,
         protocols=protocols_list,
         category=category,
+        stables_only=stables_only,
         min_tvl=min_tvl,
         sort_by=sort_by,
         limit=limit

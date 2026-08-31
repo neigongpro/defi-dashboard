@@ -114,6 +114,7 @@ def get_enriched_pools(
     chains: Optional[List[str]] = None,
     protocols: Optional[List[str]] = None,
     category: Optional[str] = None,
+    stables_only: bool = False,
     min_tvl: float = 1_000_000,
     sort_by: str = "apy",
     limit: int = 100,
@@ -122,7 +123,7 @@ def get_enriched_pools(
     """
     Get all latest pools enriched with calculated analytics metrics and sorted.
     """
-    from defi_engine import get_category
+    from defi_engine import get_category, get_protocol_url, is_stablecoin, normalize_stable_symbol
 
     raw_pools = get_latest_snapshots(
         db_path=db_path,
@@ -130,13 +131,21 @@ def get_enriched_pools(
         chains=chains,
         protocols=protocols,
         min_tvl=min_tvl,
-        limit=limit * 2
+        limit=limit * 3
     )
 
     enriched = []
     for p in raw_pools:
-        cat = get_category(p["project"])
+        cat = get_category(p["project"], p["symbol"])
         if category and cat != category:
+            continue
+
+        # If user asked for stablecoins only, filter out non-stablecoins
+        if stables_only and not is_stablecoin(p["symbol"]):
+            continue
+
+        # In pure lending mode, strictly exclude any liquidity pair symbols
+        if category == "lending" and ("-" in p["symbol"] or "/" in p["symbol"]):
             continue
 
         cur_apy = float(p["apy"] or 0.0)
@@ -161,11 +170,18 @@ def get_enriched_pools(
         else:
             safety_grade = "BBB"
 
+        clean_sym = normalize_stable_symbol(p["symbol"])
+        is_canonical = p["symbol"].upper() in {"USDC", "USDT", "DAI", "USDS", "USDE", "PYUSD", "GHO", "FRAX", "FDUSD", "CRVUSD"}
+        proto_url = get_protocol_url(p["project"], p["pool_id"])
+
         enriched.append({
             "pool_id": p["pool_id"],
             "project": p["project"],
             "chain": p["chain"],
             "symbol": p["symbol"],
+            "clean_symbol": clean_sym,
+            "is_canonical": is_canonical,
+            "protocol_url": proto_url,
             "category": cat,
             "tvl_usd": cur_tvl,
             "apy": round(cur_apy, 2),

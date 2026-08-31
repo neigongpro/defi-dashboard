@@ -94,20 +94,91 @@ def fetch_pools():
         return _cache["data"]  # stale cache is better than nothing
 
 # ──────────────────────────────────────────────
-#  HELPERS
+#  VERIFIED STABLECOINS & PROTOCOL URLS
 # ──────────────────────────────────────────────
 
-def get_category(project: str) -> str:
+VERIFIED_STABLECOINS = {
+    "USDC", "USDT", "DAI", "USDS", "USDE", "PYUSD", "GHO",
+    "FRAX", "FDUSD", "CRVUSD", "LUSD", "USD+", "DOLA", "SUSD", "TUSD", "USDTB"
+}
+
+PROTOCOL_APP_URLS = {
+    "aave": "https://app.aave.com",
+    "aave-v3": "https://app.aave.com",
+    "aave-v2": "https://app.aave.com",
+    "morpho": "https://app.morpho.org",
+    "morpho-blue": "https://app.morpho.org",
+    "compound": "https://app.compound.finance",
+    "compound-v3": "https://app.compound.finance",
+    "spark": "https://app.spark.fi",
+    "sparklend": "https://app.spark.fi",
+    "spark-savings": "https://app.spark.fi",
+    "fluid": "https://fluid.io",
+    "fluid-lending": "https://fluid.io",
+    "fluid-dex": "https://fluid.io",
+    "uniswap": "https://app.uniswap.org",
+    "uniswap-v3": "https://app.uniswap.org",
+    "curve": "https://curve.fi",
+    "curve-dex": "https://curve.fi",
+    "pendle": "https://app.pendle.finance",
+    "aerodrome": "https://aerodrome.finance",
+    "aerodrome-slipstream": "https://aerodrome.finance",
+    "lido": "https://stake.lido.fi",
+}
+
+
+def get_protocol_url(project: str, pool_id: str = "") -> str:
+    """Get direct official web app URL for the protocol."""
     p = project.lower().strip()
-    # Lending match
-    if any(lp in p for lp in ["aave", "morpho", "compound", "spark", "fluid", "venus", "benqi", "silo", "euler", "moonwell", "zerolend"]):
-        return "lending"
-    # DEX match
-    if any(dp in p for dp in ["uniswap", "curve", "aerodrome", "velodrome", "balancer", "pancakeswap", "sushi", "camelot", "trader-joe", "ambient", "maverick", "orca", "raydium"]):
+    for k, url in PROTOCOL_APP_URLS.items():
+        if p == k or p.startswith(k):
+            return url
+    return f"https://defillama.com/protocol/{p}"
+
+
+def normalize_stable_symbol(symbol: str) -> str:
+    """Extract and normalize canonical stablecoin symbol."""
+    sym = symbol.upper().strip()
+    for st in ["USDC", "USDT", "DAI", "USDS", "USDE", "PYUSD", "GHO", "FRAX", "FDUSD", "CRVUSD", "LUSD"]:
+        if st in sym:
+            return st
+    return sym
+
+
+def is_stablecoin(symbol: str) -> bool:
+    """Check if the symbol represents a verified stablecoin."""
+    sym = symbol.upper().strip()
+    return any(st in sym for st in VERIFIED_STABLECOINS)
+
+
+def get_category(project: str, symbol: str = "") -> str:
+    """
+    Classify pool category accurately:
+    - If symbol has a pair delimiter (-, /) or project is a DEX -> 'dex'
+    - If single-asset lending protocol -> 'lending'
+    - If staking / yield aggregator -> 'yield'
+    """
+    p = project.lower().strip()
+    s = symbol.upper().strip()
+
+    # If it's explicitly a DEX project or contains pair hyphen (like USDC-ETH)
+    is_pair = ("-" in s or "/" in s or " " in s)
+    is_dex_project = (
+        "-dex" in p or "dex" in p or
+        any(dp in p for dp in ["uniswap", "curve", "aerodrome", "velodrome", "balancer", "pancakeswap", "sushi", "camelot", "trader-joe", "ambient", "maverick", "orca", "raydium"])
+    )
+
+    if is_pair or is_dex_project:
         return "dex"
-    # Yield & Staking match
+
+    # Yield & Staking
     if any(yp in p for yp in ["lido", "pendle", "eigenlayer", "rocket-pool", "jito", "marinade", "convex", "yearn", "beefy", "stargate"]):
         return "yield"
+
+    # Pure Single-Asset Lending
+    if any(lp in p for lp in ["aave", "morpho", "compound", "spark", "fluid", "venus", "benqi", "silo", "euler", "moonwell", "zerolend"]):
+        return "lending"
+
     return "other"
 
 
