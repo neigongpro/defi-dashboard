@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/" class="inline-flex items-center text-xs font-semibold text-gray-400 hover:text-white transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
+        <span>Назад к рейтингу пулов</span>
+    </a>
+</div>
+
+<!-- Pool Header Card -->
+<div class="glass-card rounded-2xl p-6 mb-6 border border-gray-800/80">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center space-x-4">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-xl text-white shadow-xl shadow-blue-500/20">
+                {{ pool.project[:2] | upper }}
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-2xl font-black text-white">{{ pool.project | capitalize }}</h1>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        {{ pool.chain }}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-800 text-gray-300 border border-gray-700">
+                        {{ pool.symbol }}
+                    </span>
+                </div>
+                <div class="text-xs text-gray-400 mt-1 flex items-center space-x-3">
+                    <span>Pool ID: <code class="text-gray-300 font-mono text-[11px]">{{ pool.pool_id }}</code></span>
+                    <span>•</span>
+                    <span>Обновлено: {{ pool.ts[:19].replace('T', ' ') }} UTC</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Rebalance Action -->
+        <div>
+            <a href="/advisor?asset={{ pool.symbol.split('-')[0] }}&protocol={{ pool.project }}&chain={{ pool.chain }}&apy={{ pool.apy }}" class="inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/20 transition-all">
+                <i data-lucide="sparkles" class="w-4 h-4 mr-1.5"></i>
+                <span>Оценить ребаланс этой позиции</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Metrics Quick Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-6">
+    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
+        <div class="text-[11px] text-gray-400 uppercase font-semibold">Текущий APY</div>
+        <div class="text-xl font-black text-emerald-400 mt-1">{{ pool.apy }}%</div>
+        <div class="text-[10px] text-gray-400 mt-0.5">Base: {{ pool.apy_base }}%</div>
+    </div>
+
+    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
+        <div class="text-[11px] text-gray-400 uppercase font-semibold">Ликвидность (TVL)</div>
+        <div class="text-xl font-black text-white mt-1">${{ "{:,.0f}".format(pool.tvl_usd) }}</div>
+        <div class="text-[10px] text-gray-400 mt-0.5">Δ 7d: <span class="{% if pool.tvl_change_7d_pct >= 0 %}text-emerald-400{% else %}text-rose-400{% endif %}">{{ pool.tvl_change_7d_pct }}%</span></div>
+    </div>
+
+    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
+        <div class="text-[11px] text-gray-400 uppercase font-semibold">30d Ср. APY</div>
+        <div class="text-xl font-black text-blue-300 mt-1">{{ pool.apy_avg_30d }}%</div>
+        <div class="text-[10px] text-gray-400 mt-0.5">7d ср: {{ pool.apy_avg_7d }}%</div>
+    </div>
+
+    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
+        <div class="text-[11px] text-gray-400 uppercase font-semibold">Real Yield Ratio</div>
+        <div class="text-xl font-black text-teal-300 mt-1">{{ (pool.real_yield_ratio * 100) | int }}%</div>
+        <div class="text-[10px] text-gray-400 mt-0.5">Чистый доход</div>
+    </div>
+
+    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
+        <div class="text-[11px] text-gray-400 uppercase font-semibold">Стабильность</div>
+        <div class="text-xl font-black text-purple-300 mt-1">{{ pool.stability_score }}</div>
+        <div class="text-[10px] text-gray-400 mt-0.5">Индекс 0..1</div>
+    </div>
+
+    <div class="glass-card rounded-xl p-3.5 border border-gray-800/80">
+        <div class="text-[11px] text-gray-400 uppercase font-semibold">Рейтинг Риска</div>
+        <div class="text-xl font-black {% if pool.safety_grade == 'AAA' %}text-emerald-400{% elif pool.safety_grade == 'AA' %}text-blue-400{% else %}text-yellow-400{% endif %} mt-1">
+            {{ pool.safety_grade }}
+        </div>
+        <div class="text-[10px] text-gray-400 mt-0.5">
+            {% if pool.is_spike %}<span class="text-amber-400 font-bold">⚠️ Спайк</span>{% else %}Стабилен{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Chart Card -->
+<div class="glass-card rounded-2xl p-6 border border-gray-800/80 shadow-2xl mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div>
+            <h2 class="text-base font-bold text-white flex items-center">
+                <i data-lucide="trending-up" class="w-4 h-4 mr-2 text-emerald-400"></i>
+                <span>Динамика Доходности и Ликвидности</span>
+            </h2>
+            <p class="text-xs text-gray-400 mt-0.5">Исторические замеры из ончейн-истории пула</p>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <button onclick="loadHistory(7)" id="btn7d" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all">7 Дней</button>
+            <button onclick="loadHistory(30)" id="btn30d" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white transition-all">30 Дней</button>
+        </div>
+    </div>
+
+    <!-- Chart Canvas -->
+    <div class="relative h-80 w-full">
+        <canvas id="poolHistoryChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let chartInstance = null;
+    const poolId = "{{ pool.pool_id }}";
+
+    async function loadHistory(days) {
+        document.getElementById('btn7d').className = days === 7 
+            ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white transition-all'
+            : 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all';
+        
+        document.getElementById('btn30d').className = days === 30
+            ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white transition-all'
+            : 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-800 text-gray-300 hover:bg-gray-700 transition-all';
+
+        try {
+            const res = await fetch(`/api/pool/${poolId}/history?days=${days}`);
+            const data = await res.json();
+            renderChart(data);
+        } catch(e) {
+            console.error("Failed to load pool history:", e);
+        }
+    }
+
+    function renderChart(history) {
+        const ctx = document.getElementById('poolHistoryChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+
+        if (!history || !history.length) {
+            return;
+        }
+
+        const labels = history.map(h => {
+            const d = new Date(h.timestamp);
+            return d.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        });
+        const apyData = history.map(h => h.apy);
+        const baseApyData = history.map(h => h.apy_base || 0);
+
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Total APY (%)',
+                        data: apyData,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: history.length > 50 ? 0 : 3,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Base APY (%)',
+                        data: baseApyData,
+                        borderColor: '#3B82F6',
+                        borderDash: [4, 4],
+                        borderWidth: 1.8,
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#9CA3AF',
+                            boxWidth: 12,
+                            font: { size: 11 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#111827',
+                        titleColor: '#F3F4F6',
+                        bodyColor: '#D1D5DB',
+                        borderColor: '#374151',
+                        borderWidth: 1,
+                        padding: 10
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(55, 65, 81, 0.2)' },
+                        ticks: { color: '#6B7280', maxTicksLimit: 8, font: { size: 10 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(55, 65, 81, 0.3)' },
+                        ticks: { 
+                            color: '#9CA3AF', 
+                            font: { size: 10 },
+                            callback: value => value + '%'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Initial load 30 days
+    loadHistory(30);
+</script>
+{% endblock %}

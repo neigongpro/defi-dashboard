@@ -1,0 +1,7 @@
+{
+  "default_min_tvl": 1000000,
+  "default_excluded_chains": ["Tron"],
+  "max_results": 10,
+  "cache_ttl_seconds": 300,
+  "max_apy_cap": 500
+}

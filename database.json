@@ -1,0 +1,11 @@
+{
+  "users": {
+    "8139722800": {
+      "active_assets": [
+        "USDC",
+        "USDT"
+      ],
+      "target_apy": 0.0
+    }
+  }
+}
