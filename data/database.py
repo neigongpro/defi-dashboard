@@ -87,6 +87,23 @@ def _init_db_conn(conn: sqlite3.Connection) -> None:
     );
     """)
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_pos ON user_positions(user_id);")
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_portfolio (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL DEFAULT 'default_user',
+        protocol TEXT NOT NULL,
+        chain TEXT NOT NULL,
+        asset TEXT NOT NULL,
+        amount_usd REAL NOT NULL,
+        current_apy REAL DEFAULT 0.0,
+        pool_id TEXT,
+        notes TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_portfolio_uid ON user_portfolio(user_id);")
     conn.commit()
 
 
@@ -326,4 +343,141 @@ def execute_rollup_cleanup(days_to_keep: int = 30, db_path: Optional[str] = None
     return {
         "rollups_created": rollups_created,
         "snapshots_purged": deleted_snapshots
+    }
+
+
+# ──────────────────────────────────────────────
+#  USER PORTFOLIO (Личный Кабинет) STORAGE
+# ──────────────────────────────────────────────
+
+def get_user_portfolio(user_id: str = "default_user", db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Retrieve all capital positions for a user."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT id, user_id, protocol, chain, asset, amount_usd, current_apy, pool_id, notes, created_at, updated_at
+    FROM user_portfolio
+    WHERE user_id = ?
+    ORDER BY amount_usd DESC, id DESC
+    """, (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def add_portfolio_position(
+    user_id: str = "default_user",
+    protocol: str = "",
+    chain: str = "",
+    asset: str = "",
+    amount_usd: float = 0.0,
+    current_apy: float = 0.0,
+    pool_id: Optional[str] = None,
+    notes: Optional[str] = None,
+    db_path: Optional[str] = None
+) -> int:
+    """Insert a new capital position for a user and return its ID."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO user_portfolio (
+        user_id, protocol, chain, asset, amount_usd, current_apy, pool_id, notes, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+    """, (
+        user_id,
+        protocol.strip(),
+        chain.strip(),
+        asset.strip().upper(),
+        float(amount_usd),
+        float(current_apy),
+        pool_id.strip() if pool_id else None,
+        notes.strip() if notes else None
+    ))
+    new_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return new_id
+
+
+def update_portfolio_position(
+    pos_id: int,
+    user_id: str = "default_user",
+    protocol: Optional[str] = None,
+    chain: Optional[str] = None,
+    asset: Optional[str] = None,
+    amount_usd: Optional[float] = None,
+    current_apy: Optional[float] = None,
+    notes: Optional[str] = None,
+    db_path: Optional[str] = None
+) -> bool:
+    """Update an existing portfolio position."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+
+    fields = []
+    values = []
+    if protocol is not None:
+        fields.append("protocol = ?")
+        values.append(protocol.strip())
+    if chain is not None:
+        fields.append("chain = ?")
+        values.append(chain.strip())
+    if asset is not None:
+        fields.append("asset = ?")
+        values.append(asset.strip().upper())
+    if amount_usd is not None:
+        fields.append("amount_usd = ?")
+        values.append(float(amount_usd))
+    if current_apy is not None:
+        fields.append("current_apy = ?")
+        values.append(float(current_apy))
+    if notes is not None:
+        fields.append("notes = ?")
+        values.append(notes.strip())
+
+    if not fields:
+        conn.close()
+        return False
+
+    fields.append("updated_at = datetime('now')")
+    values.extend([pos_id, user_id])
+
+    query = f"UPDATE user_portfolio SET {', '.join(fields)} WHERE id = ? AND user_id = ?"
+    cursor.execute(query, tuple(values))
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return updated
+
+
+def delete_portfolio_position(pos_id: int, user_id: str = "default_user", db_path: Optional[str] = None) -> bool:
+    """Delete a user position by ID."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM user_portfolio WHERE id = ? AND user_id = ?", (pos_id, user_id))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+
+def get_portfolio_summary(user_id: str = "default_user", db_path: Optional[str] = None) -> Dict[str, Any]:
+    """Calculate aggregated metrics for a user's portfolio."""
+    positions = get_user_portfolio(user_id=user_id, db_path=db_path)
+    total_capital = sum(p["amount_usd"] for p in positions)
+
+    if total_capital > 0:
+        weighted_apy = sum(p["amount_usd"] * p["current_apy"] for p in positions) / total_capital
+    else:
+        weighted_apy = 0.0
+
+    annual_income = total_capital * (weighted_apy / 100.0)
+    monthly_income = annual_income / 12.0
+
+    return {
+        "positions_count": len(positions),
+        "total_capital": round(total_capital, 2),
+        "weighted_apy": round(weighted_apy, 2),
+        "monthly_income": round(monthly_income, 2),
+        "annual_income": round(annual_income, 2)
     }

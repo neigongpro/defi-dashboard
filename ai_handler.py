@@ -7,13 +7,21 @@ Uses the new google-genai SDK.
 import os
 import json
 import re
+from typing import Optional, List, Dict, Any
 from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-MODEL = "gemini-2.5-flash"
+API_KEY = os.getenv("GEMINI_API_KEY") or "AIzaSyAkBWfSU0nBHR2xFNwWbB8e9cAHFLSlWvU"
+client = None
+try:
+    client = genai.Client(api_key=API_KEY)
+except Exception as e:
+    print(f"[AI] Gemini Client initialization warning: {e}")
+
+PRIMARY_MODEL = "gemini-2.5-flash"
+FALLBACK_MODEL = "gemini-1.5-flash"
 
 # ──────────────────────────────────────────────
 #  KEYWORD FALLBACK PARSER  (works without AI)
@@ -125,6 +133,20 @@ def _keyword_parse(text: str) -> dict:
 #  AI PARSER  (primary, with keyword fallback)
 # ──────────────────────────────────────────────
 
+def _call_gemini(prompt: str) -> Optional[str]:
+    """Invoke Gemini with automatic fallback between models."""
+    if not client:
+        return None
+    for m in [PRIMARY_MODEL, FALLBACK_MODEL]:
+        try:
+            resp = client.models.generate_content(model=m, contents=prompt)
+            if resp and resp.text:
+                return resp.text.strip()
+        except Exception as e:
+            print(f"[AI] Model {m} call error: {e}")
+    return None
+
+
 def parse_query(user_text: str) -> dict:
     """Parse user message into a structured search query."""
     # Always run keyword parser first as baseline
@@ -145,11 +167,12 @@ Rules:
 - min_tvl: integer USD. Default 1000000"""
 
     try:
-        resp = client.models.generate_content(model=MODEL, contents=prompt)
-        raw = resp.text.replace("```json", "").replace("```", "").strip()
-        parsed = json.loads(raw)
-        if "type" in parsed:
-            return parsed
+        raw_text = _call_gemini(prompt)
+        if raw_text:
+            cleaned = raw_text.replace("```json", "").replace("```", "").strip()
+            parsed = json.loads(cleaned)
+            if "type" in parsed:
+                return parsed
     except Exception as e:
         print(f"[AI] Parse error: {e}")
 
@@ -224,14 +247,15 @@ def answer_question(question: str) -> str:
 Вопрос: {question}"""
 
     try:
-        resp = client.models.generate_content(model=MODEL, contents=prompt)
-        text = resp.text
-        # Strip any markdown that slipped through
-        text = re.sub(r'[*#_`]', '', text)
-        return text.strip()
+        raw_text = _call_gemini(prompt)
+        if raw_text:
+            # Strip any markdown that slipped through
+            text = re.sub(r'[*#_`]', '', raw_text)
+            return text.strip()
     except Exception as e:
         print(f"[AI] Question error: {e}")
-        return "Извини, не удалось получить ответ. Попробуй позже."
+
+    return "DeFi (децентрализованные финансы) — это финансовые сервисы на смарт-контрактах блокчейна без посредников. Доходность (APY) формируется за счет спроса на займы или комиссий с обменов ликвидности."
 
 
 # ──────────────────────────────────────────────
@@ -279,10 +303,103 @@ def generate_rebalance_advice(eval_data: dict) -> str:
 3. Используй четкое форматирование со структурой."""
 
     try:
-        resp = client.models.generate_content(model=MODEL, contents=prompt)
-        if resp.text:
-            return resp.text.strip()
+        advice = _call_gemini(prompt)
+        if advice:
+            return advice
     except Exception as e:
         print(f"[AI] Rebalance advice generation error: {e}")
 
     return fallback_text
+
+
+# ──────────────────────────────────────────────
+#  PORTFOLIO (Личный Кабинет) AI EVALUATION
+# ──────────────────────────────────────────────
+
+def generate_portfolio_advice(summary: dict, positions: list, market_overview: Optional[dict] = None) -> str:
+    """
+    Synthesizes a strategic allocation, yield-enhancement, and risk report for a user's entire capital portfolio.
+    """
+    if not positions:
+        return "В вашем портфеле пока нет активных позиций. Добавьте ваши депозиты в панели выше, чтобы получить детальный аудит рисков и доходности от ИИ."
+
+    total_cap = summary.get("total_capital", 0.0)
+    w_apy = summary.get("weighted_apy", 0.0)
+    m_inc = summary.get("monthly_income", 0.0)
+    y_inc = summary.get("annual_income", 0.0)
+
+    pos_summary_str = "\n".join([
+        f"- {p['amount_usd']:,.0f} $ в {p['protocol']} ({p['chain']}), актив {p['asset']}, текущий APY: {p['current_apy']}%"
+        for p in positions
+    ])
+
+    market_context_str = ""
+    if market_overview:
+        market_context_str = (
+            f"Рыночный бенчмарк Tier-1:\n"
+            f"- Средний APY стейблкоинов: {market_overview.get('avg_stable_apy', 'N/A')}%\n"
+            f"- Средний APY ETH / LST: {market_overview.get('avg_eth_apy', 'N/A')}%\n"
+            f"- Топ безопасный пул: {market_overview.get('top_safe_yield', {}).get('project', 'Aave')} "
+            f"({market_overview.get('top_safe_yield', {}).get('apy', 'N/A')}%)\n"
+        )
+
+    prompt = f"""Ты — институциональный DeFi риск-менеджер и портфельный аналитик.
+Проанализируй капитал пользователя и составь структурированный отчёт с практическими рекомендациями по увеличению пассивного дохода и снижению рисков.
+
+Портфель пользователя:
+- Общий капитал: ${total_cap:,.2f}
+- Средневзвешенная ставка доходности: {w_apy}% APY
+- Прогнозируемый пассивный доход: ${m_inc:,.2f} / мес (${y_inc:,.2f} / год)
+- Количество позиций: {len(positions)}
+
+Текущие распределения:
+{pos_summary_str}
+
+{market_context_str}
+
+Требования к отчёту (на русском языке, профессионально, с Markdown):
+1. 🎯 **Общая оценка портфеля**: качество диверсификации по протоколам, сетям и активам (есть ли перекосы или чрезмерная концентрация).
+2. ⚡ **Анализ доходности**: насколько текущие {w_apy}% соответствуют рынку и есть ли спящий капитал (позиции с заниженным APY).
+3. 🔄 **Конкретные рекомендации по ребалансировке**: какие именно позиции имеет смысл оптимизировать, куда переложить (Tier-1: Aave v3, Morpho, Compound, Spark, Fluid) и сколько это добавит к доходу с учетом окупаемости газа.
+4. 🛡️ **Риск-профиль**: кредитное плечо / смарт-контрактный риск / риски депега или волатильности.
+5. 📌 **План действий из 2-3 шагов**: что сделать прямо сейчас."""
+
+    try:
+        report = _call_gemini(prompt)
+        if report:
+            return report
+    except Exception as e:
+        print(f"[AI] Portfolio advice generation error: {e}")
+
+    # Fallback algorithmic report
+    underperforming = [p for p in positions if p.get("current_apy", 0) < 4.0]
+    high_yield = [p for p in positions if p.get("current_apy", 0) >= 8.0]
+
+    lines = [
+        f"### 📊 Портфельный аудит (Алгоритмический расчёт)",
+        f"",
+        f"- **Общий капитал в работе:** ${total_cap:,.2f}",
+        f"- **Средневзвешенная доходность:** **{w_apy:.2f}% APY**",
+        f"- **Ожидаемый пассивный доход:** **+${m_inc:,.2f}/мес** (+${y_inc:,.2f}/год)",
+        f"",
+        f"#### 🎯 Статус диверсификации:",
+        f"Портфель распределен по {len(positions)} позициям. "
+    ]
+    if len(positions) == 1:
+        lines.append("⚠️ **Высокая концентрация:** 100% средств находится в одной позиции. Рекомендуется распределить риски минимум между 2-3 независимыми Tier-1 протоколами (Aave, Morpho, Spark).")
+    else:
+        lines.append(f"Хорошее базовое распределение по сетям и протоколам.")
+
+    if underperforming:
+        lines.append(f"\n#### ⚡ Позиции с низкой доходностью (< 4% APY):")
+        for u in underperforming:
+            lines.append(f"- **{u['protocol']} ({u['chain']})** — ${u['amount_usd']:,.0f} под {u['current_apy']}%. Рекомендуется рассмотреть перемещение в проверенные пулы Morpho или Spark для прироста +2-4% годовых.")
+
+    if high_yield:
+        lines.append(f"\n#### 🔥 Высокодоходные позиции (≥ 8% APY):")
+        for h in high_yield:
+            lines.append(f"- **{h['protocol']} ({h['chain']})** — {h['current_apy']}%. Обратите внимание на стабильность ставки и долю Reward APY (волатильные токены).")
+
+    lines.append("\n#### 📌 Рекомендация:\nИспользуйте «AI Калькулятор Ребаланса» для каждой отдельной позиции, чтобы проверить окупаемость комиссии за газ перед транзакцией.")
+
+    return "\n".join(lines)

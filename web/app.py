@@ -15,11 +15,15 @@ from pydantic import BaseModel
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data.database import init_db, get_pool_history, get_pool_by_id
+from data.database import (
+    init_db, get_pool_history, get_pool_by_id,
+    get_user_portfolio, add_portfolio_position,
+    update_portfolio_position, delete_portfolio_position, get_portfolio_summary
+)
 from data.metrics_engine import get_enriched_pools, get_market_overview, calculate_pool_metrics
 from data.snapshot_worker import fetch_and_store_snapshots
 from advisor.rebalance_advisor import evaluate_rebalance
-from ai_handler import generate_rebalance_advice
+from ai_handler import generate_rebalance_advice, generate_portfolio_advice
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
@@ -155,6 +159,21 @@ async def view_pool_detail(request: Request, pool_id: str):
     )
 
 
+@app.get("/portfolio", response_class=HTMLResponse)
+async def view_portfolio(request: Request):
+    summary = get_portfolio_summary()
+    positions = get_user_portfolio()
+    return templates.TemplateResponse(
+        request=request,
+        name="portfolio.html",
+        context={
+            "summary": summary,
+            "positions": positions,
+            "active_tab": "portfolio"
+        }
+    )
+
+
 # ──────────────────────────────────────────────
 #  REST JSON API ROUTES
 # ──────────────────────────────────────────────
@@ -282,6 +301,78 @@ async def api_rebalance(req: RebalanceRequest):
 async def api_refresh_snapshots(background_tasks: BackgroundTasks):
     background_tasks.add_task(fetch_and_store_snapshots)
     return {"status": "refresh_scheduled", "message": "Fetching fresh on-chain data in background"}
+
+
+# ──────────────────────────────────────────────
+#  PORTFOLIO (ЛИЧНЫЙ КАБИНЕТ) API
+# ──────────────────────────────────────────────
+
+class PortfolioPositionRequest(BaseModel):
+    protocol: str
+    chain: str
+    asset: str
+    amount_usd: float
+    current_apy: float = 0.0
+    pool_id: Optional[str] = None
+    notes: Optional[str] = None
+    user_id: str = "default_user"
+
+
+@app.get("/api/portfolio")
+async def api_get_portfolio(user_id: str = Query("default_user")):
+    summary = get_portfolio_summary(user_id=user_id)
+    positions = get_user_portfolio(user_id=user_id)
+    return {
+        "summary": summary,
+        "positions": positions
+    }
+
+
+@app.post("/api/portfolio/position")
+async def api_add_portfolio_position(pos: PortfolioPositionRequest):
+    new_id = add_portfolio_position(
+        user_id=pos.user_id,
+        protocol=pos.protocol,
+        chain=pos.chain,
+        asset=pos.asset,
+        amount_usd=pos.amount_usd,
+        current_apy=pos.current_apy,
+        pool_id=pos.pool_id,
+        notes=pos.notes
+    )
+    summary = get_portfolio_summary(user_id=pos.user_id)
+    positions = get_user_portfolio(user_id=pos.user_id)
+    return {
+        "status": "success",
+        "id": new_id,
+        "summary": summary,
+        "positions": positions
+    }
+
+
+@app.delete("/api/portfolio/position/{pos_id}")
+async def api_delete_portfolio_position(pos_id: int, user_id: str = Query("default_user")):
+    deleted = delete_portfolio_position(pos_id=pos_id, user_id=user_id)
+    summary = get_portfolio_summary(user_id=user_id)
+    positions = get_user_portfolio(user_id=user_id)
+    return {
+        "status": "success" if deleted else "not_found",
+        "summary": summary,
+        "positions": positions
+    }
+
+
+@app.post("/api/portfolio/evaluate")
+async def api_evaluate_portfolio(user_id: str = Query("default_user")):
+    summary = get_portfolio_summary(user_id=user_id)
+    positions = get_user_portfolio(user_id=user_id)
+    overview = get_market_overview(stables_only=False)
+    advice = generate_portfolio_advice(summary=summary, positions=positions, market_overview=overview)
+    return {
+        "summary": summary,
+        "positions": positions,
+        "ai_advice": advice
+    }
 
 
 if __name__ == "__main__":

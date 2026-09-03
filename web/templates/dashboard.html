@@ -372,7 +372,7 @@
             </thead>
             <tbody id="poolsTableBody" class="divide-y divide-white/[0.03]">
                 {% for p in pools %}
-                <tr id="row-{{ p.pool_id }}" onclick="togglePoolExpand('{{ p.pool_id }}', event)" class="pool-row hover:bg-white/[0.04] transition-colors group cursor-pointer">
+                <tr id="row-{{ p.pool_id }}" onclick="onRowClick('{{ p.pool_id }}', event)" class="pool-row hover:bg-white/[0.04] transition-colors group cursor-pointer">
                     <!-- Protocol & Direct App Link -->
                     <td class="py-2 px-3">
                         <div class="flex items-center space-x-2">
@@ -762,9 +762,144 @@
     const STABLE_ASSETS = ['USDC', 'USDT', 'DAI', 'USDE', 'PYUSD', 'GHO', 'FRAX'];
     const ALL_ASSETS = ['ETH', 'BTC', 'USDC', 'USDT', 'SOL'];
 
-    document.addEventListener("DOMContentLoaded", () => {
+    // State Persistence & Navigation
+    function saveDashboardState(poolId) {
+        const selectedChains = getSelectedChains();
+        const searchInput = document.getElementById('searchInput');
+        const search = searchInput ? searchInput.value : '';
+        const tvlEl = document.getElementById('tvlFilter');
+        const minTvl = tvlEl ? tvlEl.value : '100000';
+
+        const state = {
+            isStablesOnly: isStablesOnly,
+            currentCategory: currentCategory,
+            currentAsset: currentAsset,
+            selectedChains: selectedChains,
+            minTvl: minTvl,
+            searchQuery: search,
+            currentSortBy: currentSortBy,
+            currentSortOrder: currentSortOrder,
+            scrollY: window.scrollY,
+            clickedPoolId: poolId || null,
+            timestamp: Date.now()
+        };
+        sessionStorage.setItem('defi_dashboard_filters', JSON.stringify(state));
+    }
+
+    function onRowClick(poolId, event) {
+        if (event && event.target && (
+            event.target.closest('a') || 
+            event.target.closest('button') || 
+            event.target.closest('input') || 
+            event.target.closest('select') ||
+            event.target.classList.contains('no-drill')
+        )) {
+            return;
+        }
+        saveDashboardState(poolId);
+        window.location.href = `/pool/${encodeURIComponent(poolId)}`;
+    }
+
+    function restoreDashboardState() {
+        const raw = sessionStorage.getItem('defi_dashboard_filters');
+        if (!raw) return null;
+        try {
+            const state = JSON.parse(raw);
+            if (state.timestamp && (Date.now() - state.timestamp > 7200000)) {
+                sessionStorage.removeItem('defi_dashboard_filters');
+                return null;
+            }
+
+            if (state.isStablesOnly !== undefined && state.isStablesOnly !== isStablesOnly) {
+                isStablesOnly = state.isStablesOnly;
+                const stablesBtn = document.getElementById('viewStablesBtn');
+                const allBtn = document.getElementById('viewAllBtn');
+                if (stablesBtn && allBtn) {
+                    if (isStablesOnly) {
+                        stablesBtn.className = 'px-2.5 py-1 rounded text-[11px] font-medium transition-all bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                        allBtn.className = 'px-2.5 py-1 rounded text-[11px] font-medium transition-all text-gray-400 hover:text-white';
+                    } else {
+                        stablesBtn.className = 'px-2.5 py-1 rounded text-[11px] font-medium transition-all text-gray-400 hover:text-white';
+                        allBtn.className = 'px-2.5 py-1 rounded text-[11px] font-medium transition-all bg-white/[0.08] text-white border border-white/[0.08]';
+                    }
+                }
+                const titleLabel = document.getElementById('tableTitleLabel');
+                if (titleLabel) titleLabel.innerText = isStablesOnly ? 'Пулы Стейблкоинов' : 'Все DeFi Пулы';
+            }
+
+            if (state.currentCategory !== undefined) {
+                currentCategory = state.currentCategory;
+                document.querySelectorAll('.cat-pill').forEach(btn => {
+                    if (btn.getAttribute('data-cat') === currentCategory) {
+                        btn.className = 'cat-pill px-2.5 py-1 rounded text-[11px] font-medium transition-all bg-white/[0.08] text-white border border-white/[0.1]';
+                    } else {
+                        btn.className = 'cat-pill px-2.5 py-1 rounded text-[11px] font-medium transition-all text-gray-400 hover:text-white';
+                    }
+                });
+            }
+
+            if (state.currentAsset !== undefined) {
+                currentAsset = state.currentAsset;
+            }
+
+            if (state.currentSortBy !== undefined) currentSortBy = state.currentSortBy;
+            if (state.currentSortOrder !== undefined) currentSortOrder = state.currentSortOrder;
+
+            if (state.minTvl !== undefined && document.getElementById('tvlFilter')) {
+                document.getElementById('tvlFilter').value = state.minTvl;
+            }
+
+            if (state.searchQuery !== undefined && document.getElementById('searchInput')) {
+                document.getElementById('searchInput').value = state.searchQuery;
+            }
+
+            if (state.selectedChains && Array.isArray(state.selectedChains)) {
+                const setChains = new Set(state.selectedChains);
+                document.querySelectorAll('.chain-cb').forEach(cb => {
+                    cb.checked = setChains.has(cb.value);
+                });
+                if (typeof updateChainButtonLabel === 'function') {
+                    updateChainButtonLabel();
+                }
+            }
+
+            return state;
+        } catch(e) {
+            console.error('Failed to restore dashboard state:', e);
+            return null;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
         renderAssetButtons();
-        updateSortHeaders();
+        const restored = restoreDashboardState();
+        if (restored) {
+            if (currentAsset) {
+                document.querySelectorAll('.asset-btn').forEach(btn => {
+                    if (btn.getAttribute('data-asset') === currentAsset) {
+                        btn.className = 'asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all shrink-0';
+                    } else {
+                        btn.className = 'asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.04] text-gray-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.04] transition-all shrink-0';
+                    }
+                });
+            }
+            updateSortHeaders();
+            await applyFilters(true);
+            if (restored.scrollY) {
+                window.scrollTo({ top: restored.scrollY, behavior: 'instant' });
+            }
+            if (restored.clickedPoolId) {
+                const targetRow = document.getElementById(`row-${restored.clickedPoolId}`);
+                if (targetRow) {
+                    targetRow.classList.add('bg-emerald-500/15', 'ring-1', 'ring-emerald-400/40');
+                    setTimeout(() => {
+                        targetRow.classList.remove('bg-emerald-500/15', 'ring-1', 'ring-emerald-400/40');
+                    }, 2500);
+                }
+            }
+        } else {
+            updateSortHeaders();
+        }
     });
 
     function renderAssetButtons() {
@@ -904,8 +1039,9 @@
         }
     });
 
-    // Seamless in-place data refresh (invoked by Update button without losing any active filters)
+    // Seamless in-place data refresh (invoked by Update button without losing any active filters or scroll)
     window.onDashboardDataUpdated = async function() {
+        const savedScroll = window.scrollY;
         try {
             const oRes = await fetch(`/api/overview?stables_only=${isStablesOnly}`);
             if (oRes.ok) {
@@ -916,7 +1052,8 @@
             console.error('Overview update error:', e);
         }
 
-        await applyFilters();
+        await applyFilters(true);
+        window.scrollTo({ top: savedScroll, behavior: 'instant' });
     };
 
     // Multi-select Chain Dropdown
@@ -989,7 +1126,8 @@
     }
 
     // Apply All Filters and Fetch API
-    async function applyFilters() {
+    async function applyFilters(keepScroll = false) {
+        const savedScroll = keepScroll ? window.scrollY : null;
         const searchInput = document.getElementById('searchInput');
         const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
         const tvlEl = document.getElementById('tvlFilter');
@@ -1023,6 +1161,9 @@
             }
 
             renderTable(data);
+            if (savedScroll !== null) {
+                window.scrollTo({ top: savedScroll, behavior: 'instant' });
+            }
         } catch(e) {
             console.error('Filter error:', e);
         }
@@ -1248,8 +1389,8 @@
             const stabilityLabel = (p.stability_score >= 0.8) ? 'Высокая' : ((p.stability_score >= 0.5) ? 'Умеренная' : 'Волатильная');
 
             return `
-            <!-- Main Row (Click anywhere to expand inline inspector) -->
-            <tr id="row-${p.pool_id}" onclick="togglePoolExpand('${p.pool_id}', event)" class="pool-row hover:bg-white/[0.04] transition-colors group cursor-pointer border-b border-white/[0.03]">
+            <!-- Main Row (Click anywhere to navigate to detailed view) -->
+            <tr id="row-${p.pool_id}" onclick="onRowClick('${p.pool_id}', event)" class="pool-row hover:bg-white/[0.04] transition-colors group cursor-pointer border-b border-white/[0.03]">
                 <!-- Protocol -->
                 <td class="py-2 px-3">
                     <div class="flex items-center space-x-2">
@@ -1442,7 +1583,7 @@
         lucide.createIcons();
     }
 
-    // Auto background poll every 60s
-    setInterval(applyFilters, 60000);
+    // Auto background poll every 15 minutes (900,000 ms) via refreshData (spins arrow only during update)
+    setInterval(refreshData, 900000);
 </script>
 {% endblock %}

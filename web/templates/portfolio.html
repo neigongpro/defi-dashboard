@@ -1,0 +1,510 @@
+{% extends "base.html" %}
+
+{% block title %}Мой Портфель — Личный Кабинет DeFi{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-4">
+    <!-- Top Bar Navigation & Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-white/[0.06]">
+        <div>
+            <div class="flex items-center space-x-2">
+                <div class="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/25 flex items-center justify-center text-teal-300">
+                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <span>Личный Кабинет & Память Капитала</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/20 font-mono">SQLite + LocalStorage</span>
+                    </h1>
+                </div>
+            </div>
+            <p class="text-[11px] text-gray-400 mt-1">
+                Учёт ваших депозитов в DeFi-протоколах, расчет пассивного дохода и стратегический AI-аудит рисков.
+            </p>
+        </div>
+
+        <div class="flex items-center space-x-2 shrink-0">
+            <button onclick="openAddModal()" class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Добавить позицию</span>
+            </button>
+
+            <button onclick="evaluatePortfolioAI()" id="evalAiBtn" class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span>Оценить через AI</span>
+            </button>
+
+            <a href="/" class="px-3 py-1.5 rounded-md text-[11px] font-medium bg-[#0e121b] hover:bg-white/[0.08] text-gray-300 hover:text-white transition-all border border-white/[0.08] flex items-center space-x-1.5">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-gray-400"></i>
+                <span>← К таблице</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- Total Capital -->
+        <div class="mini-card rounded-xl p-3.5 border border-white/[0.07] bg-[#0b0d13] relative overflow-hidden">
+            <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-1 flex items-center justify-between">
+                <span>Капитал в работе</span>
+                <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-emerald-400"></i>
+            </div>
+            <div class="text-xl font-bold font-mono text-white mt-1" id="kpiTotalCapital">
+                ${{ "{:,.2f}".format(summary.total_capital) }}
+            </div>
+            <div class="text-[10px] text-gray-500 mt-1 font-mono" id="kpiPositionsCount">
+                {{ summary.positions_count }} активных позиций
+            </div>
+        </div>
+
+        <!-- Blended APY -->
+        <div class="mini-card rounded-xl p-3.5 border border-white/[0.07] bg-[#0b0d13]">
+            <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-1 flex items-center justify-between">
+                <span>Ср. доходность (APY)</span>
+                <i data-lucide="trending-up" class="w-3.5 h-3.5 text-teal-400"></i>
+            </div>
+            <div class="text-xl font-bold font-mono text-teal-300 mt-1" id="kpiWeightedApy">
+                {{ "{:.2f}".format(summary.weighted_apy) }}%
+            </div>
+            <div class="text-[10px] text-gray-500 mt-1">
+                Средневзвешенная ставка
+            </div>
+        </div>
+
+        <!-- Monthly Income -->
+        <div class="mini-card rounded-xl p-3.5 border border-white/[0.07] bg-[#0b0d13]">
+            <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-1 flex items-center justify-between">
+                <span>Доход в месяц</span>
+                <i data-lucide="calendar" class="w-3.5 h-3.5 text-sky-400"></i>
+            </div>
+            <div class="text-xl font-bold font-mono text-sky-300 mt-1" id="kpiMonthlyIncome">
+                +${{ "{:,.2f}".format(summary.monthly_income) }}
+            </div>
+            <div class="text-[10px] text-gray-500 mt-1">
+                Пассивный денежный поток
+            </div>
+        </div>
+
+        <!-- Annual Income -->
+        <div class="mini-card rounded-xl p-3.5 border border-white/[0.07] bg-[#0b0d13]">
+            <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-1 flex items-center justify-between">
+                <span>Доход в год</span>
+                <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i>
+            </div>
+            <div class="text-xl font-bold font-mono text-amber-300 mt-1" id="kpiAnnualIncome">
+                +${{ "{:,.2f}".format(summary.annual_income) }}
+            </div>
+            <div class="text-[10px] text-gray-500 mt-1">
+                Прогноз на 365 дней
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Portfolio Advisor Report Area (Dynamically displayed) -->
+    <div id="aiReportCard" class="hidden mini-card rounded-xl p-4 border border-purple-500/30 bg-purple-950/10 relative">
+        <div class="flex items-center justify-between pb-2 mb-3 border-b border-purple-500/20">
+            <div class="flex items-center space-x-2">
+                <div class="w-6 h-6 rounded-md bg-purple-500/20 flex items-center justify-center text-purple-300">
+                    <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+                </div>
+                <span class="text-xs font-bold text-purple-200">Стратегический аудит портфеля (Gemini AI)</span>
+            </div>
+            <button onclick="document.getElementById('aiReportCard').classList.add('hidden')" class="text-gray-400 hover:text-white p-1 text-xs cursor-pointer">
+                ✕
+            </button>
+        </div>
+
+        <div id="aiReportContent" class="text-xs text-gray-200 leading-relaxed space-y-2 whitespace-pre-wrap font-sans">
+            <!-- Populated via API -->
+        </div>
+    </div>
+
+    <!-- Active Positions Table Card -->
+    <div class="mini-card rounded-xl border border-white/[0.07] bg-[#0b0d13] overflow-hidden">
+        <div class="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
+                <h2 class="text-xs font-semibold text-white">Мои Активные Позиции</h2>
+            </div>
+            <span class="text-[10px] font-mono text-gray-400" id="tableHeaderCount">
+                Всего позиций: {{ positions | length }}
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-white/[0.02] border-b border-white/[0.05] text-[10px] uppercase font-semibold text-gray-400">
+                    <tr>
+                        <th class="py-2.5 px-3">Протокол</th>
+                        <th class="py-2.5 px-2.5">Сеть</th>
+                        <th class="py-2.5 px-2.5">Актив</th>
+                        <th class="py-2.5 px-3 text-right">Капитал ($)</th>
+                        <th class="py-2.5 px-3 text-right">Текущий APY</th>
+                        <th class="py-2.5 px-3 text-right">Доход / Месяц</th>
+                        <th class="py-2.5 px-3">Заметки</th>
+                        <th class="py-2.5 px-3 text-center">Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="positionsTableBody" class="divide-y divide-white/[0.03]">
+                    {% if positions %}
+                        {% for p in positions %}
+                        <tr id="pos-row-{{ p.id }}" class="hover:bg-white/[0.02] transition-colors">
+                            <td class="py-2 px-3">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-bold text-[9px] text-emerald-400">
+                                        {{ p.protocol[:2] | upper }}
+                                    </div>
+                                    <span class="font-semibold text-white capitalize">{{ p.protocol }}</span>
+                                </div>
+                            </td>
+                            <td class="py-2 px-2.5">
+                                <span class="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] text-gray-300 border border-white/[0.06]">
+                                    {{ p.chain }}
+                                </span>
+                            </td>
+                            <td class="py-2 px-2.5">
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                                    {{ p.asset }}
+                                </span>
+                            </td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-white">
+                                ${{ "{:,.2f}".format(p.amount_usd) }}
+                            </td>
+                            <td class="py-2 px-3 text-right font-mono font-bold text-emerald-400">
+                                {{ p.current_apy }}%
+                            </td>
+                            <td class="py-2 px-3 text-right font-mono text-teal-300">
+                                +${{ "{:,.2f}".format((p.amount_usd * p.current_apy / 100.0) / 12.0) }}
+                            </td>
+                            <td class="py-2 px-3 text-gray-400 text-[11px] truncate max-w-[150px]">
+                                {{ p.notes if p.notes else '—' }}
+                            </td>
+                            <td class="py-2 px-3 text-center">
+                                <div class="flex items-center justify-center space-x-2">
+                                    <a href="/advisor?asset={{ p.asset }}&protocol={{ p.protocol }}&chain={{ p.chain }}&apy={{ p.current_apy }}&amount={{ p.amount_usd }}" class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/25 transition-all inline-flex items-center space-x-1" title="Оценить ребаланс этой позиции">
+                                        <i data-lucide="sparkles" class="w-2.5 h-2.5"></i>
+                                        <span>Ребаланс</span>
+                                    </a>
+                                    <button onclick="deletePosition({{ p.id }})" class="text-rose-400/80 hover:text-rose-300 p-1 transition-colors cursor-pointer" title="Удалить позицию">
+                                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr id="emptyRow">
+                            <td colspan="8" class="text-center py-10 text-gray-500">
+                                <i data-lucide="inbox" class="w-8 h-8 mx-auto text-gray-600 mb-2"></i>
+                                <div class="text-xs text-gray-400 font-medium">Нет добавленных позиций</div>
+                                <div class="text-[11px] text-gray-500 mt-1">
+                                    Нажмите «Добавить позицию», чтобы зафиксировать ваш капитал и получать точные рекомендации AI.
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add / Edit Position -->
+<div id="addPosModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="bg-[#0e111a] border border-white/[0.1] rounded-xl max-w-md w-full p-4 shadow-2xl relative" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-2 mb-3 border-b border-white/[0.08]">
+            <div class="flex items-center space-x-2">
+                <div class="w-6 h-6 rounded bg-emerald-500/15 flex items-center justify-center text-emerald-400">
+                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                </div>
+                <h3 class="text-xs font-bold text-white">Добавить позицию капитала</h3>
+            </div>
+            <button onclick="closeAddModal()" class="text-gray-400 hover:text-white p-1 text-xs cursor-pointer">✕</button>
+        </div>
+
+        <!-- Form -->
+        <form id="positionForm" onsubmit="submitPositionForm(event)" class="space-y-3 text-xs">
+            <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Актив</label>
+                    <select id="formAsset" required class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono">
+                        <option value="USDT">USDT (Tether)</option>
+                        <option value="USDC">USDC (Circle)</option>
+                        <option value="DAI">DAI / USDS</option>
+                        <option value="USDE">USDe (Ethena)</option>
+                        <option value="ETH">ETH / WETH</option>
+                        <option value="WBTC">WBTC / cbBTC</option>
+                        <option value="SOL">SOL (Solana)</option>
+                        <option value="SUI">SUI</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Протокол</label>
+                    <select id="formProtocol" required class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500">
+                        <option value="aave-v3">Aave v3</option>
+                        <option value="morpho-blue">Morpho Blue</option>
+                        <option value="compound-v3">Compound v3</option>
+                        <option value="spark">Spark</option>
+                        <option value="fluid">Fluid</option>
+                        <option value="curve">Curve</option>
+                        <option value="uniswap-v3">Uniswap v3</option>
+                        <option value="lido">Lido</option>
+                        <option value="pendle">Pendle</option>
+                        <option value="aerodrome">Aerodrome</option>
+                        <option value="kamino">Kamino</option>
+                        <option value="navi">Navi Protocol</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Сеть (Blockchain)</label>
+                    <select id="formChain" required class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500">
+                        <option value="Ethereum">Ethereum</option>
+                        <option value="Base">Base</option>
+                        <option value="Arbitrum">Arbitrum</option>
+                        <option value="Optimism">Optimism</option>
+                        <option value="Solana">Solana</option>
+                        <option value="Sui">Sui</option>
+                        <option value="Polygon">Polygon</option>
+                        <option value="BSC">BSC</option>
+                        <option value="Avalanche">Avalanche</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Депозит ($ USD)</label>
+                    <input type="number" id="formAmount" min="10" step="1" required placeholder="10000" class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Текущая ставка (%)</label>
+                    <input type="number" id="formApy" min="0" max="500" step="0.01" required placeholder="5.5" class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Заметка / Кошелек</label>
+                    <input type="text" id="formNotes" placeholder="Ledger, Кошелек 1" class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex items-center justify-end space-x-2 pt-2 border-t border-white/[0.08]">
+                <button type="button" onclick="closeAddModal()" class="px-3 py-1.5 rounded text-gray-400 hover:text-white transition-colors cursor-pointer">Отмена</button>
+                <button type="submit" id="savePosBtn" class="px-4 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-sm transition-all cursor-pointer">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        syncPortfolioWithLocalStorage();
+    });
+
+    function openAddModal() {
+        document.getElementById('addPosModal').classList.remove('hidden');
+    }
+
+    function closeAddModal() {
+        document.getElementById('addPosModal').classList.add('hidden');
+    }
+
+    // Modal close on backdrop click or ESC
+    document.getElementById('addPosModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('addPosModal')) closeAddModal();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeAddModal();
+    });
+
+    async function submitPositionForm(e) {
+        e.preventDefault();
+        const saveBtn = document.getElementById('savePosBtn');
+        saveBtn.innerText = 'Сохранение...';
+        saveBtn.disabled = true;
+
+        const payload = {
+            asset: document.getElementById('formAsset').value,
+            protocol: document.getElementById('formProtocol').value,
+            chain: document.getElementById('formChain').value,
+            amount_usd: parseFloat(document.getElementById('formAmount').value),
+            current_apy: parseFloat(document.getElementById('formApy').value),
+            notes: document.getElementById('formNotes').value
+        };
+
+        try {
+            const res = await fetch('/api/portfolio/position', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                updateUI(data.summary, data.positions);
+                // Save mirror to localStorage
+                localStorage.setItem('user_portfolio_cache', JSON.stringify(data.positions));
+                closeAddModal();
+                document.getElementById('positionForm').reset();
+            }
+        } catch(err) {
+            console.error('Failed to save position:', err);
+            alert('Ошибка при сохранении позиции');
+        } finally {
+            saveBtn.innerText = 'Сохранить';
+            saveBtn.disabled = false;
+        }
+    }
+
+    async function deletePosition(posId) {
+        if (!confirm('Удалить эту позицию из портфеля?')) return;
+        try {
+            const res = await fetch(`/api/portfolio/position/${posId}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                updateUI(data.summary, data.positions);
+                localStorage.setItem('user_portfolio_cache', JSON.stringify(data.positions));
+            }
+        } catch(err) {
+            console.error('Delete position error:', err);
+        }
+    }
+
+    function updateUI(summary, positions) {
+        // KPI update
+        document.getElementById('kpiTotalCapital').innerText = '$' + Number(summary.total_capital || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('kpiWeightedApy').innerText = Number(summary.weighted_apy || 0).toFixed(2) + '%';
+        document.getElementById('kpiMonthlyIncome').innerText = '+$' + Number(summary.monthly_income || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('kpiAnnualIncome').innerText = '+$' + Number(summary.annual_income || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('kpiPositionsCount').innerText = `${positions.length} активных позиций`;
+        document.getElementById('tableHeaderCount').innerText = `Всего позиций: ${positions.length}`;
+
+        // Table update
+        const tbody = document.getElementById('positionsTableBody');
+        if (!positions.length) {
+            tbody.innerHTML = `
+                <tr id="emptyRow">
+                    <td colspan="8" class="text-center py-10 text-gray-500">
+                        <i data-lucide="inbox" class="w-8 h-8 mx-auto text-gray-600 mb-2"></i>
+                        <div class="text-xs text-gray-400 font-medium">Нет добавленных позиций</div>
+                        <div class="text-[11px] text-gray-500 mt-1">
+                            Нажмите «Добавить позицию», чтобы зафиксировать ваш капитал и получать точные рекомендации AI.
+                        </div>
+                    </td>
+                </tr>
+            `;
+        } else {
+            tbody.innerHTML = positions.map(p => {
+                const monthly = ((p.amount_usd * p.current_apy / 100.0) / 12.0);
+                return `
+                <tr id="pos-row-${p.id}" class="hover:bg-white/[0.02] transition-colors">
+                    <td class="py-2 px-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-bold text-[9px] text-emerald-400">
+                                ${(p.protocol || '').substring(0, 2).toUpperCase()}
+                            </div>
+                            <span class="font-semibold text-white capitalize">${p.protocol}</span>
+                        </div>
+                    </td>
+                    <td class="py-2 px-2.5">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] text-gray-300 border border-white/[0.06]">
+                            ${p.chain}
+                        </span>
+                    </td>
+                    <td class="py-2 px-2.5">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                            ${p.asset}
+                        </span>
+                    </td>
+                    <td class="py-2 px-3 text-right font-mono font-bold text-white">
+                        $${Number(p.amount_usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td class="py-2 px-3 text-right font-mono font-bold text-emerald-400">
+                        ${p.current_apy}%
+                    </td>
+                    <td class="py-2 px-3 text-right font-mono text-teal-300">
+                        +$${Number(monthly).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td class="py-2 px-3 text-gray-400 text-[11px] truncate max-w-[150px]">
+                        ${p.notes || '—'}
+                    </td>
+                    <td class="py-2 px-3 text-center">
+                        <div class="flex items-center justify-center space-x-2">
+                            <a href="/advisor?asset=${p.asset}&protocol=${p.protocol}&chain=${p.chain}&apy=${p.current_apy}&amount=${p.amount_usd}" class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/25 transition-all inline-flex items-center space-x-1" title="Оценить ребаланс этой позиции">
+                                <i data-lucide="sparkles" class="w-2.5 h-2.5"></i>
+                                <span>Ребаланс</span>
+                            </a>
+                            <button onclick="deletePosition(${p.id})" class="text-rose-400/80 hover:text-rose-300 p-1 transition-colors cursor-pointer" title="Удалить позицию">
+                                <i data-lucide="trash-2" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+        lucide.createIcons();
+    }
+
+    async function evaluatePortfolioAI() {
+        const btn = document.getElementById('evalAiBtn');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Анализ ИИ...</span>`;
+        btn.disabled = true;
+        lucide.createIcons();
+
+        try {
+            const res = await fetch('/api/portfolio/evaluate', { method: 'POST' });
+            const data = await res.json();
+            const reportCard = document.getElementById('aiReportCard');
+            const reportContent = document.getElementById('aiReportContent');
+
+            reportContent.innerText = data.ai_advice || 'Нет рекомендаций';
+            reportCard.classList.remove('hidden');
+            reportCard.scrollIntoView({ behavior: 'smooth' });
+        } catch(err) {
+            console.error('AI portfolio evaluation error:', err);
+            alert('Не удалось сформировать AI-отчёт. Проверьте соединение.');
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    }
+
+    // Keep localStorage in sync
+    async function syncPortfolioWithLocalStorage() {
+        try {
+            const res = await fetch('/api/portfolio');
+            if (res.ok) {
+                const data = await res.json();
+                localStorage.setItem('user_portfolio_cache', JSON.stringify(data.positions));
+            }
+        } catch(e) {
+            console.warn('Offline mode, loading from localStorage');
+            const cached = localStorage.getItem('user_portfolio_cache');
+            if (cached) {
+                const positions = JSON.parse(cached);
+                const total = positions.reduce((acc, p) => acc + p.amount_usd, 0);
+                const wApy = total > 0 ? positions.reduce((acc, p) => acc + p.amount_usd * p.current_apy, 0) / total : 0;
+                updateUI({
+                    total_capital: total,
+                    weighted_apy: wApy,
+                    monthly_income: (total * wApy / 100) / 12,
+                    annual_income: total * wApy / 100,
+                    positions_count: positions.length
+                }, positions);
+            }
+        }
+    }
+</script>
+{% endblock %}
