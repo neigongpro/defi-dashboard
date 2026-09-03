@@ -198,6 +198,7 @@ def get_enriched_pools(
 
     # Sorting
     is_reverse = (sort_order.lower() != "asc")
+    grade_ranks = {"AAA": 4, "AA": 3, "A": 2, "BBB": 1}
 
     if sort_by == "tvl":
         enriched.sort(key=lambda x: x["tvl_usd"], reverse=is_reverse)
@@ -210,7 +211,11 @@ def get_enriched_pools(
     elif sort_by == "project":
         enriched.sort(key=lambda x: x["project"].lower(), reverse=is_reverse)
     elif sort_by == "symbol":
-        enriched.sort(key=lambda x: x["symbol"].lower(), reverse=is_reverse)
+        enriched.sort(key=lambda x: (x.get("clean_symbol") or x["symbol"]).lower(), reverse=is_reverse)
+    elif sort_by in ("category", "type"):
+        enriched.sort(key=lambda x: x["category"].lower(), reverse=is_reverse)
+    elif sort_by in ("rating", "safety", "safety_grade"):
+        enriched.sort(key=lambda x: (0 if x["is_spike"] else grade_ranks.get(x["safety_grade"], 1), x["tvl_usd"]), reverse=is_reverse)
     elif sort_by == "chain":
         enriched.sort(key=lambda x: x["chain"].lower(), reverse=is_reverse)
     else:  # default apy
