@@ -21,7 +21,7 @@ except Exception as e:
     print(f"[AI] Gemini Client initialization warning: {e}")
 
 PRIMARY_MODEL = "gemini-2.5-flash"
-FALLBACK_MODEL = "gemini-1.5-flash"
+FALLBACK_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash"]
 
 # ──────────────────────────────────────────────
 #  KEYWORD FALLBACK PARSER  (works without AI)
@@ -137,7 +137,8 @@ def _call_gemini(prompt: str) -> Optional[str]:
     """Invoke Gemini with automatic fallback between models."""
     if not client:
         return None
-    for m in [PRIMARY_MODEL, FALLBACK_MODEL]:
+    models_to_try = [PRIMARY_MODEL] + [m for m in FALLBACK_MODELS if m != PRIMARY_MODEL]
+    for m in models_to_try:
         try:
             resp = client.models.generate_content(model=m, contents=prompt)
             if resp and resp.text:

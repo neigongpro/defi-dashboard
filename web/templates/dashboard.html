@@ -474,124 +474,6 @@
                         {% endif %}
                     </td>
                 </tr>
-
-                <!-- Aave Style Inline Expanded Drawer -->
-                <tr id="expand-{{ p.pool_id }}" class="hidden expand-row bg-[#080a11] border-b border-teal-500/20">
-                    <td colspan="9" class="p-0">
-                        <div class="p-3.5 sm:p-5 space-y-3.5 border-l-2 border-teal-400/80 bg-gradient-to-b from-[#0d101a] to-[#07080e]">
-                            <!-- Row 1: Metrics Banner -->
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-3 border-b border-white/[0.06]">
-                                <div class="flex items-center space-x-4">
-                                    <!-- Circular Utilization Ring -->
-                                    <div class="relative w-12 h-12 shrink-0 flex items-center justify-center">
-                                        <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-                                            <path class="text-white/[0.06]" stroke-width="3.2" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                            <path class="text-teal-400" stroke-dasharray="{{ (p.stability_score * 100) | int }}, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                        </svg>
-                                        <span class="absolute text-[10px] font-bold font-mono text-teal-300">{{ (p.stability_score * 100) | int }}%</span>
-                                    </div>
-
-                                    <div>
-                                        <div class="flex items-center space-x-1 text-[10px] text-gray-400 uppercase font-medium">
-                                            <span>Total supplied</span>
-                                            <i data-lucide="info" class="w-2.5 h-2.5 text-gray-500"></i>
-                                        </div>
-                                        <div class="text-base font-bold font-mono text-white">${{ "{:,.0f}".format(p.tvl_usd) }}</div>
-                                        <div class="text-[10px] text-gray-500 font-mono">Глубина пула в сети {{ p.chain }}</div>
-                                    </div>
-
-                                    <div class="pl-4 border-l border-white/[0.06]">
-                                        <div class="text-[10px] text-gray-400 uppercase font-medium">APY</div>
-                                        <div class="text-lg font-extrabold font-mono text-emerald-400">{{ "{:.2f}".format(p.apy) }}%</div>
-                                        <div class="text-[9px] text-gray-400 font-mono">30d: {{ "{:.2f}".format(p.apy_avg_30d) }}%</div>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center space-x-2 shrink-0">
-                                    <a href="{{ p.protocol_url }}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/30 text-xs font-semibold flex items-center space-x-1.5 transition-all">
-                                        <span>Открыть dApp</span>
-                                        <i data-lucide="external-link" class="w-3 h-3"></i>
-                                    </a>
-                                    <a href="/advisor?asset={{ p.symbol }}&protocol={{ p.project }}&chain={{ p.chain }}&apy={{ p.apy }}" class="px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-gray-200 border border-white/[0.08] text-xs font-semibold flex items-center space-x-1.5 transition-all">
-                                        <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i>
-                                        <span>AI Советник</span>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <!-- Row 2: Historical Yield Chart (Chart.js) -->
-                            <div class="bg-[#0b0d16] rounded-xl p-3 sm:p-4 border border-white/[0.06]">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="w-2 h-2 rounded-full bg-teal-400"></span>
-                                        <span class="text-xs font-bold text-gray-200 tracking-wide">Supply APR</span>
-                                        <span id="avg-badge-{{ p.pool_id }}" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.06] text-teal-300 border border-teal-500/20">
-                                            Avg {{ "{:.2f}".format(p.apy_avg_30d) }}%
-                                        </span>
-                                    </div>
-
-                                    <!-- Timeframe pills: 1w | 1m | 6m | 1y -->
-                                    <div class="inline-flex items-center bg-[#07080d] p-0.5 rounded-md border border-white/[0.08]">
-                                        <button onclick="switchPoolTimeframe('{{ p.pool_id }}', '1w', 7, event)" id="tf-{{ p.pool_id }}-1w" class="px-2 py-0.5 rounded text-[10px] font-semibold text-gray-400 hover:text-white transition-all">1w</button>
-                                        <button onclick="switchPoolTimeframe('{{ p.pool_id }}', '1m', 30, event)" id="tf-{{ p.pool_id }}-1m" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30 transition-all">1m</button>
-                                        <button onclick="switchPoolTimeframe('{{ p.pool_id }}', '6m', 180, event)" id="tf-{{ p.pool_id }}-6m" class="px-2 py-0.5 rounded text-[10px] font-semibold text-gray-400 hover:text-white transition-all">6m</button>
-                                        <button onclick="switchPoolTimeframe('{{ p.pool_id }}', '1y', 365, event)" id="tf-{{ p.pool_id }}-1y" class="px-2 py-0.5 rounded text-[10px] font-semibold text-gray-400 hover:text-white transition-all">1y</button>
-                                    </div>
-                                </div>
-
-                                <div class="relative h-48 sm:h-52 w-full">
-                                    <div id="chart-loader-{{ p.pool_id }}" class="hidden absolute inset-0 flex items-center justify-center bg-[#0b0d16]/80 z-10">
-                                        <div class="flex items-center space-x-2 text-xs text-teal-400 font-mono">
-                                            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                                            <span>Синхронизация...</span>
-                                        </div>
-                                    </div>
-                                    <canvas id="chart-{{ p.pool_id }}"></canvas>
-                                </div>
-                            </div>
-
-                            <!-- Row 3: Parameters & Risk Factors -->
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-                                <div class="bg-[#0b0d16] p-2.5 rounded-lg border border-white/[0.05]">
-                                    <div class="text-[10px] text-gray-400 mb-1">Стабильность ставки</div>
-                                    <div class="flex items-center justify-between mb-1.5">
-                                        <span class="font-mono font-bold text-white text-xs">{{ (p.stability_score * 100) | int }}%</span>
-                                        <span class="text-[9px] text-gray-400 font-mono">{% if p.stability_score >= 0.8 %}Высокая{% elif p.stability_score >= 0.5 %}Умеренная{% else %}Волатильная{% endif %}</span>
-                                    </div>
-                                    <div class="w-full bg-white/[0.06] rounded-full h-1 overflow-hidden">
-                                        <div class="bg-teal-400 h-1 rounded-full" style="width: {{ (p.stability_score * 100) | int }}%"></div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-[#0b0d16] p-2.5 rounded-lg border border-white/[0.05]">
-                                    <div class="text-[10px] text-gray-400 mb-1">Рейтинг надежности</div>
-                                    <div class="flex items-center space-x-1.5">
-                                        <span class="font-mono font-bold text-xs {% if p.safety_grade == 'AAA' %}text-emerald-400{% elif p.safety_grade == 'AA' %}text-sky-400{% else %}text-amber-400{% endif %}">{{ p.safety_grade }}</span>
-                                        {% if p.is_spike %}
-                                        <span onclick="event.stopPropagation(); toggleFaqModal()" class="cursor-pointer px-1 py-[1px] rounded text-[8px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">⚠️ Спайк (?)</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="text-[9px] text-gray-500 truncate mt-1">Скоринг TVL и просадок</div>
-                                </div>
-
-                                <div class="bg-[#0b0d16] p-2.5 rounded-lg border border-white/[0.05]">
-                                    <div class="text-[10px] text-gray-400 mb-1">Тип доходности</div>
-                                    <div class="font-bold text-white text-xs">{% if p.category == 'lending' %}Lending (Кредитование){% elif p.category == 'dex' %}LP (DEX Ликвидность){% else %}Staking / Yield{% endif %}</div>
-                                    <div class="text-[9px] text-gray-500 mt-1">{% if p.category == 'lending' %}Без риска Impermanent Loss{% elif p.category == 'dex' %}Комиссии + риск IL{% else %}Начисление наград{% endif %}</div>
-                                </div>
-
-                                <div class="bg-[#0b0d16] p-2.5 rounded-lg border border-white/[0.05]">
-                                    <div class="text-[10px] text-gray-400 mb-1">Сеть & ID</div>
-                                    <div class="font-mono font-semibold text-white text-xs truncate">{{ p.chain }}</div>
-                                    <div class="flex items-center space-x-1 mt-1 text-[9px] text-gray-500 font-mono">
-                                        <span class="truncate max-w-[90px]" title="{{ p.pool_id }}">{{ p.pool_id[:8] }}...</span>
-                                        <button onclick="event.stopPropagation(); navigator.clipboard.writeText('{{ p.pool_id }}')" class="hover:text-emerald-300 cursor-pointer" title="Скопировать ID">📋</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -786,6 +668,16 @@
         sessionStorage.setItem('defi_dashboard_filters', JSON.stringify(state));
     }
 
+    // Automatically save dashboard state on page unload, navigation, or navbar tab click
+    window.addEventListener('beforeunload', () => saveDashboardState());
+    window.addEventListener('pagehide', () => saveDashboardState());
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (link && link.href && !link.target && !link.href.startsWith('javascript:')) {
+            saveDashboardState();
+        }
+    });
+
     function onRowClick(poolId, event) {
         if (event && event.target && (
             event.target.closest('a') || 
@@ -810,7 +702,7 @@
                 return null;
             }
 
-            if (state.isStablesOnly !== undefined && state.isStablesOnly !== isStablesOnly) {
+            if (state.isStablesOnly !== undefined) {
                 isStablesOnly = state.isStablesOnly;
                 const stablesBtn = document.getElementById('viewStablesBtn');
                 const allBtn = document.getElementById('viewAllBtn');
@@ -825,7 +717,16 @@
                 }
                 const titleLabel = document.getElementById('tableTitleLabel');
                 if (titleLabel) titleLabel.innerText = isStablesOnly ? 'Пулы Стейблкоинов' : 'Все DeFi Пулы';
+
+                if (window.location.pathname === '/' && isStablesOnly) {
+                    window.history.replaceState({}, '', '/stables');
+                } else if (window.location.pathname === '/stables' && !isStablesOnly) {
+                    window.history.replaceState({}, '', '/');
+                }
             }
+
+            // Always render asset buttons with the active mode
+            renderAssetButtons();
 
             if (state.currentCategory !== undefined) {
                 currentCategory = state.currentCategory;
@@ -840,6 +741,13 @@
 
             if (state.currentAsset !== undefined) {
                 currentAsset = state.currentAsset;
+                document.querySelectorAll('.asset-btn').forEach(btn => {
+                    if (btn.getAttribute('data-asset') === currentAsset) {
+                        btn.className = 'asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all shrink-0';
+                    } else {
+                        btn.className = 'asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.04] text-gray-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.04] transition-all shrink-0';
+                    }
+                });
             }
 
             if (state.currentSortBy !== undefined) currentSortBy = state.currentSortBy;
@@ -871,34 +779,31 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
-        renderAssetButtons();
         const restored = restoreDashboardState();
-        if (restored) {
-            if (currentAsset) {
-                document.querySelectorAll('.asset-btn').forEach(btn => {
-                    if (btn.getAttribute('data-asset') === currentAsset) {
-                        btn.className = 'asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all shrink-0';
-                    } else {
-                        btn.className = 'asset-btn px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.04] text-gray-300 hover:text-white hover:bg-white/[0.07] border border-white/[0.04] transition-all shrink-0';
+        if (!restored) {
+            renderAssetButtons();
+            updateSortHeaders();
+        } else {
+            updateSortHeaders();
+            await applyFilters(false);
+            if (restored.scrollY || restored.clickedPoolId) {
+                requestAnimationFrame(() => {
+                    if (restored.clickedPoolId) {
+                        const targetRow = document.getElementById(`row-${restored.clickedPoolId}`);
+                        if (targetRow) {
+                            targetRow.classList.add('bg-emerald-500/20', 'ring-2', 'ring-emerald-400');
+                            targetRow.scrollIntoView({ behavior: 'auto', block: 'center' });
+                            setTimeout(() => {
+                                targetRow.classList.remove('bg-emerald-500/20', 'ring-2', 'ring-emerald-400');
+                            }, 3000);
+                            return;
+                        }
+                    }
+                    if (restored.scrollY) {
+                        window.scrollTo({ top: restored.scrollY, behavior: 'instant' });
                     }
                 });
             }
-            updateSortHeaders();
-            await applyFilters(true);
-            if (restored.scrollY) {
-                window.scrollTo({ top: restored.scrollY, behavior: 'instant' });
-            }
-            if (restored.clickedPoolId) {
-                const targetRow = document.getElementById(`row-${restored.clickedPoolId}`);
-                if (targetRow) {
-                    targetRow.classList.add('bg-emerald-500/15', 'ring-1', 'ring-emerald-400/40');
-                    setTimeout(() => {
-                        targetRow.classList.remove('bg-emerald-500/15', 'ring-1', 'ring-emerald-400/40');
-                    }, 2500);
-                }
-            }
-        } else {
-            updateSortHeaders();
         }
     });
 
@@ -1169,196 +1074,47 @@
         }
     }
 
-    // Chart instances registry
-    window.poolCharts = window.poolCharts || {};
-
-    // Toggle In-Place Aave Drawer
-    function togglePoolExpand(poolId, event) {
-        // Do not expand if user clicked a link, button, or checkbox
-        if (event && event.target && event.target.closest('a, button, input, select')) {
-            return;
-        }
-
-        const expandRow = document.getElementById(`expand-${poolId}`);
-        const chevron = document.getElementById(`chevron-${poolId}`);
-        const mainRow = document.getElementById(`row-${poolId}`);
-        if (!expandRow) return;
-
-        const isHidden = expandRow.classList.contains('hidden');
-        if (isHidden) {
-            expandRow.classList.remove('hidden');
-            if (chevron) {
-                chevron.classList.add('rotate-90', 'text-teal-400');
-            }
-            if (mainRow) {
-                mainRow.classList.add('bg-white/[0.04]');
-            }
-            // Load chart with 30-day (1m) default
-            loadPoolChart(poolId, 30, '1m');
-        } else {
-            expandRow.classList.add('hidden');
-            if (chevron) {
-                chevron.classList.remove('rotate-90', 'text-teal-400');
-            }
-            if (mainRow) {
-                mainRow.classList.remove('bg-white/[0.04]');
-            }
-        }
-    }
-
-    // Switch timeframe: 1w (7d) | 1m (30d) | 6m (180d) | 1y (365d)
-    function switchPoolTimeframe(poolId, tfLabel, days, event) {
-        if (event) event.stopPropagation();
-
-        ['1w', '1m', '6m', '1y'].forEach(tf => {
-            const btn = document.getElementById(`tf-${poolId}-${tf}`);
-            if (!btn) return;
-            if (tf === tfLabel) {
-                btn.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30 transition-all';
-            } else {
-                btn.className = 'px-2 py-0.5 rounded text-[10px] font-semibold text-gray-400 hover:text-white transition-all';
-            }
-        });
-
-        loadPoolChart(poolId, days, tfLabel);
-    }
-
-    // Fetch and render Aave-style Chart.js
-    async function loadPoolChart(poolId, days, tfLabel) {
-        const loader = document.getElementById(`chart-loader-${poolId}`);
-        if (loader) loader.classList.remove('hidden');
-
-        try {
-            const res = await fetch(`/api/pool/${poolId}/history?days=${days}`);
-            const data = await res.json();
-            if (loader) loader.classList.add('hidden');
-
-            const avgBadge = document.getElementById(`avg-badge-${poolId}`);
-            if (avgBadge && data.avg_apy !== undefined) {
-                avgBadge.innerText = `Avg ${Number(data.avg_apy).toFixed(2)}%`;
-            }
-
-            const points = data.points || (Array.isArray(data) ? data : []);
-            if (!points || !points.length) return;
-
-            const canvas = document.getElementById(`chart-${poolId}`);
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-
-            if (window.poolCharts[poolId]) {
-                window.poolCharts[poolId].destroy();
-            }
-
-            const labels = points.map(p => {
-                const d = new Date(p.timestamp);
-                if (days <= 7) return d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', hour: '2-digit' });
-                if (days <= 30) return d.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' });
-                return d.toLocaleDateString('ru-RU', { month: 'short', year: '2-digit' });
-            });
-
-            const apyValues = points.map(p => Number(p.apy || 0));
-            const avgVal = Number(data.avg_apy !== undefined ? data.avg_apy : 0);
-
-            const gradient = ctx.createLinearGradient(0, 0, 0, 180);
-            gradient.addColorStop(0, 'rgba(45, 212, 191, 0.22)');
-            gradient.addColorStop(1, 'rgba(45, 212, 191, 0.0)');
-
-            window.poolCharts[poolId] = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Supply APR',
-                            data: apyValues,
-                            borderColor: '#2dd4bf',
-                            backgroundColor: gradient,
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.35,
-                            pointRadius: points.length > 50 ? 0 : 2,
-                            pointHoverRadius: 6,
-                            pointHoverBackgroundColor: '#ffffff',
-                            pointHoverBorderColor: '#2dd4bf',
-                            pointHoverBorderWidth: 2
-                        },
-                        {
-                            label: 'Avg',
-                            data: Array(points.length).fill(avgVal),
-                            borderColor: 'rgba(255, 255, 255, 0.4)',
-                            borderWidth: 1.5,
-                            borderDash: [5, 5],
-                            pointRadius: 0,
-                            fill: false
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            enabled: true,
-                            backgroundColor: '#0c101a',
-                            borderColor: 'rgba(255, 255, 255, 0.12)',
-                            borderWidth: 1,
-                            padding: 10,
-                            cornerRadius: 8,
-                            titleColor: '#9ca3af',
-                            titleFont: { size: 10, family: 'Inter' },
-                            bodyColor: '#ffffff',
-                            bodyFont: { size: 12, weight: 'bold', family: 'JetBrains Mono' },
-                            displayColors: false,
-                            callbacks: {
-                                title: function(items) {
-                                    const idx = items[0].dataIndex;
-                                    const d = new Date(points[idx]?.timestamp);
-                                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                                },
-                                label: function(item) {
-                                    if (item.datasetIndex === 1) return null;
-                                    return `Supply APR: ${item.raw}%`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: { display: false },
-                            ticks: {
-                                color: '#6b7280',
-                                font: { size: 9, family: 'JetBrains Mono' },
-                                maxTicksLimit: 6
-                            }
-                        },
-                        y: {
-                            grid: { color: 'rgba(255, 255, 255, 0.04)' },
-                            ticks: {
-                                color: '#6b7280',
-                                font: { size: 9, family: 'JetBrains Mono' },
-                                callback: v => v + '%'
-                            }
-                        }
-                    }
-                }
-            });
-        } catch (err) {
-            console.error('Failed to load chart for pool:', poolId, err);
-            if (loader) loader.classList.add('hidden');
-        }
-    }
-
     function renderTable(pools) {
         const tbody = document.getElementById('poolsTableBody');
         document.getElementById('poolCountBadge').innerText = `${pools.length} пулов`;
 
         if (!pools.length) {
             tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500 text-xs">Ничего не найдено по заданным параметрам фильтрации.</td></tr>`;
+            return;
+        }
+
+        // Check if we can perform a flicker-free in-place text update
+        const existingRows = tbody.querySelectorAll('tr.pool-row');
+        let canUpdateInPlace = (existingRows.length === pools.length);
+        if (canUpdateInPlace) {
+            for (let i = 0; i < pools.length; i++) {
+                if (existingRows[i].id !== `row-${pools[i].pool_id}`) {
+                    canUpdateInPlace = false;
+                    break;
+                }
+            }
+        }
+
+        if (canUpdateInPlace) {
+            for (let i = 0; i < pools.length; i++) {
+                const p = pools[i];
+                const row = existingRows[i];
+                const tvlEl = row.querySelector('.tvl-cell');
+                if (tvlEl) tvlEl.innerText = '$' + Number(p.tvl_usd).toLocaleString('en-US', { maximumFractionDigits: 0 });
+                const apyEl = row.querySelector('.apy-val');
+                if (apyEl) apyEl.innerText = `${p.apy}%`;
+                const apySub = row.querySelector('.apy-sub');
+                if (apySub) {
+                    apySub.innerHTML = `<span>B: ${p.apy_base}%</span>${p.apy_reward > 0 ? `<span class="text-amber-400">+${p.apy_reward}%</span>` : ''}`;
+                }
+                const avgEl = row.querySelector('.avg-cell');
+                if (avgEl) avgEl.innerText = `${p.apy_avg_30d}%`;
+                const stabBar = row.querySelector('.stab-bar');
+                const scorePct = Math.round((p.stability_score || 0) * 100);
+                if (stabBar) stabBar.style.width = `${scorePct}%`;
+                const stabScore = row.querySelector('.stab-score');
+                if (stabScore) stabScore.innerText = `${p.stability_score}`;
+            }
             return;
         }
 
@@ -1386,23 +1142,21 @@
                 : '';
 
             const scorePercent = Math.round((p.stability_score || 0) * 100);
-            const stabilityLabel = (p.stability_score >= 0.8) ? 'Высокая' : ((p.stability_score >= 0.5) ? 'Умеренная' : 'Волатильная');
 
             return `
-            <!-- Main Row (Click anywhere to navigate to detailed view) -->
             <tr id="row-${p.pool_id}" onclick="onRowClick('${p.pool_id}', event)" class="pool-row hover:bg-white/[0.04] transition-colors group cursor-pointer border-b border-white/[0.03]">
                 <!-- Protocol -->
                 <td class="py-2 px-3">
                     <div class="flex items-center space-x-2">
-                        <i data-lucide="chevron-right" id="chevron-${p.pool_id}" class="w-3.5 h-3.5 text-gray-500 group-hover:text-teal-400 transition-transform duration-200 shrink-0"></i>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-gray-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition-transform shrink-0"></i>
                         <div class="w-5 h-5 rounded bg-white/[0.05] border border-white/[0.08] flex items-center justify-center font-bold text-[9px] text-gray-300 shrink-0">
-                            ${p.project.substring(0, 2).toUpperCase()}
+                            ${(p.project || '').substring(0, 2).toUpperCase()}
                         </div>
                         <div class="flex items-center space-x-1">
-                            <span class="font-semibold text-gray-200 group-hover:text-teal-300 transition-colors">
-                                ${p.project.charAt(0).toUpperCase() + p.project.slice(1)}
+                            <span class="font-semibold text-gray-200 group-hover:text-emerald-300 transition-colors">
+                                ${(p.project || '').charAt(0).toUpperCase() + (p.project || '').slice(1)}
                             </span>
-                            <a href="${p.protocol_url || '#'}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="text-gray-400 hover:text-teal-300 p-0.5 transition-colors" title="Открыть dApp ${p.project}">
+                            <a href="${p.protocol_url || '#'}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="text-gray-400 hover:text-emerald-300 p-0.5 transition-colors" title="Открыть dApp ${p.project}">
                                 <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
                             </a>
                         </div>
@@ -1434,148 +1188,32 @@
                 <td class="py-2 px-1.5 text-center w-12">${catBadge}</td>
 
                 <!-- TVL -->
-                <td class="py-2 px-3 text-right font-mono text-gray-300">$${tvlFmt}</td>
+                <td class="py-2 px-3 text-right font-mono text-gray-300 tvl-cell">$${tvlFmt}</td>
 
                 <!-- APY -->
                 <td class="py-2 px-3 text-right">
-                    <div class="font-mono font-bold text-emerald-400 text-[12px]">${p.apy}%</div>
-                    <div class="text-[9px] text-gray-500 flex items-center justify-end space-x-1 font-mono">
+                    <div class="font-mono font-bold text-emerald-400 text-[12px] apy-val">${p.apy}%</div>
+                    <div class="text-[9px] text-gray-500 flex items-center justify-end space-x-1 font-mono apy-sub">
                         <span>B: ${p.apy_base}%</span>
                         ${p.apy_reward > 0 ? `<span class="text-amber-400">+${p.apy_reward}%</span>` : ''}
                     </div>
                 </td>
 
                 <!-- 30d Avg APY -->
-                <td class="py-2 px-2.5 text-right font-mono text-gray-400 hidden sm:table-cell">${p.apy_avg_30d}%</td>
+                <td class="py-2 px-2.5 text-right font-mono text-gray-400 hidden sm:table-cell avg-cell">${p.apy_avg_30d}%</td>
 
                 <!-- Stability Score -->
                 <td class="py-2 px-2.5 text-center hidden md:table-cell">
                     <div class="inline-flex items-center space-x-1">
                         <div class="w-8 bg-white/[0.05] rounded-full h-1 overflow-hidden">
-                            <div class="bg-emerald-400 h-1 rounded-full" style="width: ${scorePercent}%"></div>
+                            <div class="bg-emerald-400 h-1 rounded-full stab-bar" style="width: ${scorePercent}%"></div>
                         </div>
-                        <span class="text-[9px] text-gray-500 font-mono">${p.stability_score}</span>
+                        <span class="text-[9px] text-gray-500 font-mono stab-score">${p.stability_score}</span>
                     </div>
                 </td>
 
                 <!-- RATING: Narrow w-14 text-center -->
                 <td class="py-2 px-1.5 text-center w-14">${safetyBadge}</td>
-            </tr>
-
-            <!-- Aave Style Inline Expanded Drawer -->
-            <tr id="expand-${p.pool_id}" class="hidden expand-row bg-[#080a11] border-b border-teal-500/20">
-                <td colspan="9" class="p-0">
-                    <div class="p-3.5 sm:p-5 space-y-3.5 border-l-2 border-teal-400/80 bg-gradient-to-b from-[#0d101a] to-[#07080e]">
-                        <!-- Row 1: Metrics Banner -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pb-3 border-b border-white/[0.06]">
-                            <div class="flex items-center space-x-4">
-                                <!-- Circular Utilization Ring -->
-                                <div class="relative w-12 h-12 shrink-0 flex items-center justify-center">
-                                    <svg class="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-                                        <path class="text-white/[0.06]" stroke-width="3.2" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                        <path class="text-teal-400" stroke-dasharray="${scorePercent}, 100" stroke-width="3.2" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                    </svg>
-                                    <span class="absolute text-[10px] font-bold font-mono text-teal-300">${scorePercent}%</span>
-                                </div>
-
-                                <div>
-                                    <div class="flex items-center space-x-1 text-[10px] text-gray-400 uppercase font-medium">
-                                        <span>Total supplied</span>
-                                        <i data-lucide="info" class="w-2.5 h-2.5 text-gray-500"></i>
-                                    </div>
-                                    <div class="text-base font-bold font-mono text-white">$${tvlFmt}</div>
-                                    <div class="text-[10px] text-gray-500 font-mono">Глубина пула в сети ${p.chain}</div>
-                                </div>
-
-                                <div class="pl-4 border-l border-white/[0.06]">
-                                    <div class="text-[10px] text-gray-400 uppercase font-medium">APY</div>
-                                    <div class="text-lg font-extrabold font-mono text-emerald-400">${p.apy}%</div>
-                                    <div class="text-[9px] text-gray-400 font-mono">30d: ${p.apy_avg_30d}%</div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center space-x-2 shrink-0">
-                                <a href="${p.protocol_url || '#'}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg bg-teal-500/15 hover:bg-teal-500/25 text-teal-300 border border-teal-500/30 text-xs font-semibold flex items-center space-x-1.5 transition-all">
-                                    <span>Открыть dApp</span>
-                                    <i data-lucide="external-link" class="w-3 h-3"></i>
-                                </a>
-                                <a href="/advisor?asset=${encodeURIComponent(p.symbol)}&protocol=${encodeURIComponent(p.project)}&chain=${encodeURIComponent(p.chain)}&apy=${p.apy}" class="px-3 py-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-gray-200 border border-white/[0.08] text-xs font-semibold flex items-center space-x-1.5 transition-all">
-                                    <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i>
-                                    <span>AI Советник</span>
-                                </a>
-                            </div>
-                        </div>
-
-                        <!-- Row 2: Historical Yield Chart (Chart.js) -->
-                        <div class="bg-[#0b0d16] rounded-xl p-3 sm:p-4 border border-white/[0.06]">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center space-x-2">
-                                    <span class="w-2 h-2 rounded-full bg-teal-400"></span>
-                                    <span class="text-xs font-bold text-gray-200 tracking-wide">Supply APR</span>
-                                    <span id="avg-badge-${p.pool_id}" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.06] text-teal-300 border border-teal-500/20">
-                                        Avg ${p.apy_avg_30d}%
-                                    </span>
-                                </div>
-
-                                <!-- Timeframe pills: 1w | 1m | 6m | 1y -->
-                                <div class="inline-flex items-center bg-[#07080d] p-0.5 rounded-md border border-white/[0.08]">
-                                    <button onclick="switchPoolTimeframe('${p.pool_id}', '1w', 7, event)" id="tf-${p.pool_id}-1w" class="px-2 py-0.5 rounded text-[10px] font-semibold text-gray-400 hover:text-white transition-all">1w</button>
-                                    <button onclick="switchPoolTimeframe('${p.pool_id}', '1m', 30, event)" id="tf-${p.pool_id}-1m" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/20 text-teal-300 border border-teal-500/30 transition-all">1m</button>
-                                    <button onclick="switchPoolTimeframe('${p.pool_id}', '6m', 180, event)" id="tf-${p.pool_id}-6m" class="px-2 py-0.5 rounded text-[10px] font-semibold text-gray-400 hover:text-white transition-all">6m</button>
-                                    <button onclick="switchPoolTimeframe('${p.pool_id}', '1y', 365, event)" id="tf-${p.pool_id}-1y" class="px-2 py-0.5 rounded text-[10px] font-semibold text-gray-400 hover:text-white transition-all">1y</button>
-                                </div>
-                            </div>
-
-                            <div class="relative h-48 sm:h-52 w-full">
-                                <div id="chart-loader-${p.pool_id}" class="hidden absolute inset-0 flex items-center justify-center bg-[#0b0d16]/80 z-10">
-                                    <div class="flex items-center space-x-2 text-xs text-teal-400 font-mono">
-                                        <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
-                                        <span>Синхронизация...</span>
-                                    </div>
-                                </div>
-                                <canvas id="chart-${p.pool_id}"></canvas>
-                            </div>
-                        </div>
-
-                        <!-- Row 3: Parameters & Risk Factors -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
-                            <div class="bg-[#0b0d16] p-2.5 rounded-lg border border-white/[0.05]">
-                                <div class="text-[10px] text-gray-400 mb-1">Стабильность ставки</div>
-                                <div class="flex items-center justify-between mb-1.5">
-                                    <span class="font-mono font-bold text-white text-xs">${scorePercent}%</span>
-                                    <span class="text-[9px] text-gray-400 font-mono">${stabilityLabel}</span>
-                                </div>
-                                <div class="w-full bg-white/[0.06] rounded-full h-1 overflow-hidden">
-                                    <div class="bg-teal-400 h-1 rounded-full" style="width: ${scorePercent}%"></div>
-                                </div>
-                            </div>
-
-                            <div class="bg-[#0b0d16] p-2.5 rounded-lg border border-white/[0.05]">
-                                <div class="text-[10px] text-gray-400 mb-1">Рейтинг надежности</div>
-                                <div class="flex items-center space-x-1.5">
-                                    <span class="font-mono font-bold text-xs ${p.safety_grade === 'AAA' ? 'text-emerald-400' : (p.safety_grade === 'AA' ? 'text-sky-400' : 'text-amber-400')}">${p.safety_grade}</span>
-                                    ${p.is_spike ? `<span onclick="event.stopPropagation(); toggleFaqModal()" class="cursor-pointer px-1 py-[1px] rounded text-[8px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">⚠️ Спайк (?)</span>` : ''}
-                                </div>
-                                <div class="text-[9px] text-gray-500 truncate mt-1">Скоринг TVL и просадок</div>
-                            </div>
-
-                            <div class="bg-[#0b0d16] p-2.5 rounded-lg border border-white/[0.05]">
-                                <div class="text-[10px] text-gray-400 mb-1">Тип доходности</div>
-                                <div class="font-bold text-white text-xs">${p.category === 'lending' ? 'Lending (Кредитование)' : (p.category === 'dex' ? 'LP (DEX Ликвидность)' : 'Staking / Yield')}</div>
-                                <div class="text-[9px] text-gray-500 mt-1">${p.category === 'lending' ? 'Без риска Impermanent Loss' : (p.category === 'dex' ? 'Комиссии + риск IL' : 'Начисление наград')}</div>
-                            </div>
-
-                            <div class="bg-[#0b0d16] p-2.5 rounded-lg border border-white/[0.05]">
-                                <div class="text-[10px] text-gray-400 mb-1">Сеть & ID</div>
-                                <div class="font-mono font-semibold text-white text-xs truncate">${p.chain}</div>
-                                <div class="flex items-center space-x-1 mt-1 text-[9px] text-gray-500 font-mono">
-                                    <span class="truncate max-w-[90px]" title="${p.pool_id}">${p.pool_id.substring(0, 8)}...</span>
-                                    <button onclick="event.stopPropagation(); navigator.clipboard.writeText('${p.pool_id}')" class="hover:text-emerald-300 cursor-pointer" title="Скопировать ID">📋</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </td>
             </tr>
             `;
         }).join('');
@@ -1583,7 +1221,21 @@
         lucide.createIcons();
     }
 
-    // Auto background poll every 15 minutes (900,000 ms) via refreshData (spins arrow only during update)
-    setInterval(refreshData, 900000);
+    // Global in-place dashboard data update: refreshes KPI cards and table without losing view/scroll
+    window.onDashboardDataUpdated = async function() {
+        const savedScroll = window.scrollY;
+        try {
+            const oRes = await fetch(`/api/overview?stables_only=${isStablesOnly}`);
+            if (oRes.ok) {
+                const oData = await oRes.json();
+                updateOverviewCards(oData);
+            }
+        } catch(e) {
+            console.error('Overview update error:', e);
+        }
+
+        await applyFilters(true);
+        window.scrollTo({ top: savedScroll, behavior: 'instant' });
+    };
 </script>
 {% endblock %}

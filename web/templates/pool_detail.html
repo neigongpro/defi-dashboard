@@ -7,7 +7,7 @@
     <!-- Top Navigation & Action Header -->
     <div class="flex items-center justify-between pb-2 border-b border-white/[0.06]">
         <!-- Back Button that returns to dashboard retaining all filter state -->
-        <a href="javascript:history.length > 1 ? history.back() : window.location.href='/'" class="inline-flex items-center px-3.5 py-1.5 rounded-lg bg-[#0e121b] hover:bg-emerald-500/10 text-gray-200 hover:text-emerald-300 transition-all border border-white/[0.08] hover:border-emerald-500/30 shadow-md text-xs font-semibold group cursor-pointer">
+        <a href="javascript:goBackToTable()" class="inline-flex items-center px-3.5 py-1.5 rounded-lg bg-[#0e121b] hover:bg-emerald-500/10 text-gray-200 hover:text-emerald-300 transition-all border border-white/[0.08] hover:border-emerald-500/30 shadow-md text-xs font-semibold group cursor-pointer">
             <i data-lucide="arrow-left" class="w-3.5 h-3.5 mr-1.5 text-emerald-400 group-hover:-translate-x-1 transition-transform"></i>
             <span>← Назад к таблице</span>
         </a>
@@ -76,7 +76,7 @@
             <div>
                 <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Текущий APY</div>
                 <div class="text-xl font-bold font-mono text-emerald-400 mt-1" id="metricApy">{{ pool.apy }}%</div>
-                <div class="text-[10px] text-gray-500 mt-1 font-mono">
+                <div class="text-[10px] text-gray-500 mt-1 font-mono" id="metricBaseReward">
                     Base: {{ pool.apy_base }}% · Rew: {{ pool.apy_reward }}%
                 </div>
             </div>
@@ -84,9 +84,9 @@
             <div class="relative w-14 h-14 shrink-0">
                 <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                     <path class="text-white/[0.06]" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path class="text-emerald-400" stroke-width="3.5" stroke-dasharray="{{ [pool.apy * 5, 100] | min }}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path id="apyGaugePath" class="text-emerald-400" stroke-width="3.5" stroke-dasharray="{{ [pool.apy * 5, 100] | min }}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                 </svg>
-                <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-emerald-300">
+                <div id="apyGaugeText" class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-emerald-300">
                     {{ pool.apy | round(1) }}%
                 </div>
             </div>
@@ -97,7 +97,7 @@
             <div>
                 <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Глубина TVL</div>
                 <div class="text-xl font-bold font-mono text-white mt-1" id="metricTvl">${{ "{:,.0f}".format(pool.tvl_usd) }}</div>
-                <div class="text-[10px] mt-1 font-mono {% if pool.tvl_change_7d_pct >= 0 %}text-emerald-400{% else %}text-rose-400{% endif %}">
+                <div class="text-[10px] mt-1 font-mono {% if pool.tvl_change_7d_pct >= 0 %}text-emerald-400{% else %}text-rose-400{% endif %}" id="metricTvlDelta">
                     Δ 7d: {{ pool.tvl_change_7d_pct }}%
                 </div>
             </div>
@@ -110,8 +110,8 @@
         <div class="mini-card rounded-xl p-3.5 border border-white/[0.07] bg-[#0b0d13] flex items-center justify-between">
             <div>
                 <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Стабильность</div>
-                <div class="text-xl font-bold font-mono text-teal-300 mt-1">{{ (pool.stability_score * 100) | int }}%</div>
-                <div class="text-[10px] text-gray-500 mt-1">
+                <div class="text-xl font-bold font-mono text-teal-300 mt-1" id="metricStability">{{ (pool.stability_score * 100) | int }}%</div>
+                <div class="text-[10px] text-gray-500 mt-1" id="metricStabilityLabel">
                     {% if pool.stability_score >= 0.8 %}Высокая{% elif pool.stability_score >= 0.5 %}Умеренная{% else %}Волатильная{% endif %}
                 </div>
             </div>
@@ -119,9 +119,9 @@
             <div class="relative w-14 h-14 shrink-0">
                 <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                     <path class="text-white/[0.06]" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path class="text-teal-400" stroke-width="3.5" stroke-dasharray="{{ (pool.stability_score * 100) | int }}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path id="stabGaugePath" class="text-teal-400" stroke-width="3.5" stroke-dasharray="{{ (pool.stability_score * 100) | int }}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                 </svg>
-                <div class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-teal-300">
+                <div id="stabGaugeText" class="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-teal-300">
                     {{ (pool.stability_score * 100) | int }}%
                 </div>
             </div>
@@ -130,8 +130,8 @@
         <!-- Metric 4: Real Yield & 30d Avg -->
         <div class="mini-card rounded-xl p-3.5 border border-white/[0.07] bg-[#0b0d13]">
             <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400">30d Ср. APY</div>
-            <div class="text-xl font-bold font-mono text-gray-200 mt-1">{{ pool.apy_avg_30d }}%</div>
-            <div class="text-[10px] text-sky-400 mt-1 font-mono">
+            <div class="text-xl font-bold font-mono text-gray-200 mt-1" id="metricAvg30d">{{ pool.apy_avg_30d }}%</div>
+            <div class="text-[10px] text-sky-400 mt-1 font-mono" id="metricRealYield">
                 Real Yield: {{ (pool.real_yield_ratio * 100) | int }}%
             </div>
         </div>
@@ -229,6 +229,7 @@
 <script>
     const poolId = "{{ pool.pool_id }}";
     let currentDays = 30;
+    let currentTfLabel = '1m';
     let chartInstance = null;
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -237,6 +238,7 @@
 
     function switchTimeframe(days, label) {
         currentDays = days;
+        currentTfLabel = label;
         ['1w', '1m', '6m', '1y'].forEach(tf => {
             const btn = document.getElementById(`tfBtn-${tf}`);
             if (!btn) return;
@@ -376,5 +378,72 @@
             }
         });
     }
+
+    function goBackToTable() {
+        let fallback = '/';
+        const raw = sessionStorage.getItem('defi_dashboard_filters');
+        if (raw) {
+            try {
+                const st = JSON.parse(raw);
+                if (st.isStablesOnly) fallback = '/stables';
+            } catch(e) {}
+        }
+        if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+            window.history.back();
+        } else {
+            window.location.href = fallback;
+        }
+    }
+
+    // In-place live update: refresh metrics and chart without navigating away or jumping
+    window.onDashboardDataUpdated = async function() {
+        try {
+            const res = await fetch(`/api/pool/${encodeURIComponent(poolId)}`);
+            if (res.ok) {
+                const data = await res.json();
+                const apyEl = document.getElementById('metricApy');
+                if (apyEl) apyEl.innerText = `${data.apy}%`;
+                const baseRewEl = document.getElementById('metricBaseReward');
+                if (baseRewEl) baseRewEl.innerText = `Base: ${data.apy_base}% · Rew: ${data.apy_reward}%`;
+                const apyGauge = document.getElementById('apyGaugePath');
+                if (apyGauge) apyGauge.setAttribute('stroke-dasharray', `${Math.min(data.apy * 5, 100)}, 100`);
+                const apyText = document.getElementById('apyGaugeText');
+                if (apyText) apyText.innerText = `${Number(data.apy).toFixed(1)}%`;
+
+                const tvlEl = document.getElementById('metricTvl');
+                if (tvlEl) tvlEl.innerText = '$' + Number(data.tvl_usd || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+                const tvlDelta = document.getElementById('metricTvlDelta');
+                if (tvlDelta) {
+                    tvlDelta.innerText = `Δ 7d: ${data.tvl_change_7d_pct}%`;
+                    tvlDelta.className = `text-[10px] mt-1 font-mono ${data.tvl_change_7d_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+                }
+
+                const stabEl = document.getElementById('metricStability');
+                const scorePct = Math.round((data.stability_score || 0) * 100);
+                if (stabEl) stabEl.innerText = `${scorePct}%`;
+                const stabGauge = document.getElementById('stabGaugePath');
+                if (stabGauge) stabGauge.setAttribute('stroke-dasharray', `${scorePct}, 100`);
+                const stabText = document.getElementById('stabGaugeText');
+                if (stabText) stabText.innerText = `${scorePct}%`;
+                const stabLabel = document.getElementById('metricStabilityLabel');
+                if (stabLabel) {
+                    stabLabel.innerText = data.stability_score >= 0.8 ? 'Высокая' : (data.stability_score >= 0.5 ? 'Умеренная' : 'Волатильная');
+                }
+
+                const avg30El = document.getElementById('metricAvg30d');
+                if (avg30El) avg30El.innerText = `${data.apy_avg_30d}%`;
+                const realYieldEl = document.getElementById('metricRealYield');
+                if (realYieldEl) realYieldEl.innerText = `Real Yield: ${Math.round((data.real_yield_ratio || 0) * 100)}%`;
+
+                const avgBadge = document.getElementById('avgBaselineBadge');
+                if (avgBadge) avgBadge.innerText = `Avg ${data.apy_avg_30d}%`;
+
+                // Reload historical chart
+                await loadHistory(currentDays, currentTfLabel);
+            }
+        } catch(e) {
+            console.error('Pool detail in-place update error:', e);
+        }
+    };
 </script>
 {% endblock %}

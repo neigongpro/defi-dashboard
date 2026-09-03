@@ -15,6 +15,7 @@ from pydantic import BaseModel
 # Ensure project root is in sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import asyncio
 from data.database import (
     init_db, get_pool_history, get_pool_by_id,
     get_user_portfolio, add_portfolio_position,
@@ -24,6 +25,7 @@ from data.metrics_engine import get_enriched_pools, get_market_overview, calcula
 from data.snapshot_worker import fetch_and_store_snapshots
 from advisor.rebalance_advisor import evaluate_rebalance
 from ai_handler import generate_rebalance_advice, generate_portfolio_advice
+from defi_engine import get_category, get_protocol_url, normalize_stable_symbol
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
@@ -149,6 +151,14 @@ async def view_pool_detail(request: Request, pool_id: str):
     metrics = calculate_pool_metrics(pool_id)
     if not metrics:
         return HTMLResponse("<h1>Pool not found</h1>", status_code=404)
+    if "category" not in metrics:
+        metrics["category"] = get_category(metrics["project"], metrics["symbol"])
+    if "protocol_url" not in metrics:
+        metrics["protocol_url"] = get_protocol_url(metrics["project"], metrics["pool_id"])
+    if "clean_symbol" not in metrics:
+        metrics["clean_symbol"] = normalize_stable_symbol(metrics["symbol"])
+    if "is_canonical" not in metrics:
+        metrics["is_canonical"] = metrics["symbol"].upper() in {"USDC", "USDT", "DAI", "USDS", "USDE", "PYUSD", "GHO", "FRAX", "FDUSD", "CRVUSD"}
     return templates.TemplateResponse(
         request=request,
         name="pool_detail.html",
@@ -157,6 +167,22 @@ async def view_pool_detail(request: Request, pool_id: str):
             "active_tab": "dashboard"
         }
     )
+
+
+@app.get("/api/pool/{pool_id}")
+async def api_pool_detail(pool_id: str):
+    metrics = calculate_pool_metrics(pool_id)
+    if not metrics:
+        return JSONResponse({"error": "Pool not found"}, status_code=404)
+    if "category" not in metrics:
+        metrics["category"] = get_category(metrics["project"], metrics["symbol"])
+    if "protocol_url" not in metrics:
+        metrics["protocol_url"] = get_protocol_url(metrics["project"], metrics["pool_id"])
+    if "clean_symbol" not in metrics:
+        metrics["clean_symbol"] = normalize_stable_symbol(metrics["symbol"])
+    if "is_canonical" not in metrics:
+        metrics["is_canonical"] = metrics["symbol"].upper() in {"USDC", "USDT", "DAI", "USDS", "USDE", "PYUSD", "GHO", "FRAX", "FDUSD", "CRVUSD"}
+    return metrics
 
 
 @app.get("/portfolio", response_class=HTMLResponse)
@@ -298,9 +324,12 @@ async def api_rebalance(req: RebalanceRequest):
 
 
 @app.post("/api/snapshot/refresh")
-async def api_refresh_snapshots(background_tasks: BackgroundTasks):
-    background_tasks.add_task(fetch_and_store_snapshots)
-    return {"status": "refresh_scheduled", "message": "Fetching fresh on-chain data in background"}
+async def api_refresh_snapshots():
+    try:
+        records = await asyncio.to_thread(fetch_and_store_snapshots)
+        return {"status": "success", "count": len(records), "message": f"Successfully updated {len(records)} on-chain snapshots"}
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)}, status_code=500)
 
 
 # ──────────────────────────────────────────────
@@ -357,6 +386,7 @@ async def api_delete_portfolio_position(pos_id: int, user_id: str = Query("defau
     positions = get_user_portfolio(user_id=user_id)
     return {
         "status": "success" if deleted else "not_found",
+        "deleted": pos_id if deleted else None,
         "summary": summary,
         "positions": positions
     }

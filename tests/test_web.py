@@ -110,3 +110,69 @@ def test_api_pool_history():
         h30 = h30_resp.json()
         assert "points" in h30
         assert h30["days"] == 30
+
+
+def test_pool_detail_view_and_api():
+    pools_resp = client.get("/api/pools?limit=1")
+    assert pools_resp.status_code == 200
+    pools = pools_resp.json()
+    if pools:
+        pid = pools[0]["pool_id"]
+        # Test HTML view
+        detail_resp = client.get(f"/pool/{pid}")
+        assert detail_resp.status_code == 200
+        assert "Назад к таблице" in detail_resp.text
+
+        # Test API JSON endpoint
+        api_resp = client.get(f"/api/pool/{pid}")
+        assert api_resp.status_code == 200
+        data = api_resp.json()
+        assert data["pool_id"] == pid
+        assert "category" in data
+        assert "stability_score" in data
+        assert "clean_symbol" in data
+
+
+def test_pool_not_found():
+    resp = client.get("/pool/non-existent-pool-id-12345")
+    assert resp.status_code == 404
+
+    api_resp = client.get("/api/pool/non-existent-pool-id-12345")
+    assert api_resp.status_code == 404
+
+
+def test_portfolio_flow():
+    # HTML view
+    resp = client.get("/portfolio")
+    assert resp.status_code == 200
+    assert "Портфель" in resp.text
+
+    # List positions
+    list_resp = client.get("/api/portfolio")
+    assert list_resp.status_code == 200
+    pdata = list_resp.json()
+    assert "positions" in pdata
+    assert "summary" in pdata
+
+    # Add position
+    add_payload = {
+        "asset": "USDC",
+        "protocol": "aave-v3",
+        "chain": "Arbitrum",
+        "amount_usd": 5000.0,
+        "entry_apy": 6.5,
+        "current_apy": 6.5,
+        "category": "lending",
+        "notes": "Test position"
+    }
+    create_resp = client.post("/api/portfolio/position", json=add_payload)
+    assert create_resp.status_code == 200
+    pos = create_resp.json()
+    assert "id" in pos
+    pos_id = pos["id"]
+
+    # Delete position
+    del_resp = client.delete(f"/api/portfolio/position/{pos_id}")
+    assert del_resp.status_code == 200
+    del_data = del_resp.json()
+    assert del_data.get("deleted") == pos_id

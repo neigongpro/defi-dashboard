@@ -168,6 +168,9 @@
                 isRefreshing = false;
             }
         }
+
+        // Automatic on-chain sync every 15 minutes (900,000 ms)
+        setInterval(refreshData, 900000);
     </script>
     {% block scripts %}{% endblock %}
 </body>

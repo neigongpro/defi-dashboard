@@ -34,7 +34,7 @@
                 <span>Оценить через AI</span>
             </button>
 
-            <a href="/" class="px-3 py-1.5 rounded-md text-[11px] font-medium bg-[#0e121b] hover:bg-white/[0.08] text-gray-300 hover:text-white transition-all border border-white/[0.08] flex items-center space-x-1.5">
+            <a href="javascript:goBackToTable()" class="px-3 py-1.5 rounded-md text-[11px] font-medium bg-[#0e121b] hover:bg-white/[0.08] text-gray-300 hover:text-white transition-all border border-white/[0.08] flex items-center space-x-1.5 cursor-pointer">
                 <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-gray-400"></i>
                 <span>← К таблице</span>
             </a>
@@ -488,6 +488,7 @@
             if (res.ok) {
                 const data = await res.json();
                 localStorage.setItem('user_portfolio_cache', JSON.stringify(data.positions));
+                updateUI(data.summary, data.positions);
             }
         } catch(e) {
             console.warn('Offline mode, loading from localStorage');
@@ -506,5 +507,26 @@
             }
         }
     }
+
+    function goBackToTable() {
+        let fallback = '/';
+        const raw = sessionStorage.getItem('defi_dashboard_filters');
+        if (raw) {
+            try {
+                const st = JSON.parse(raw);
+                if (st.isStablesOnly) fallback = '/stables';
+            } catch(e) {}
+        }
+        if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+            window.history.back();
+        } else {
+            window.location.href = fallback;
+        }
+    }
+
+    // Refresh portfolio metrics on global data refresh
+    window.onDashboardDataUpdated = async function() {
+        await syncPortfolioWithLocalStorage();
+    };
 </script>
 {% endblock %}
