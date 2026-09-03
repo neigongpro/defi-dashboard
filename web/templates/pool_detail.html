@@ -139,14 +139,15 @@
         const ctx = document.getElementById('poolHistoryChart').getContext('2d');
         if (chartInstance) chartInstance.destroy();
 
-        if (!history || !history.length) return;
+        const points = Array.isArray(history) ? history : (history?.points || []);
+        if (!points || !points.length) return;
 
-        const labels = history.map(h => {
+        const labels = points.map(h => {
             const d = new Date(h.timestamp);
             return d.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         });
-        const apyData = history.map(h => h.apy);
-        const baseApyData = history.map(h => h.apy_base || 0);
+        const apyData = points.map(h => h.apy);
+        const baseApyData = points.map(h => h.apy_base || 0);
 
         const gradient = ctx.createLinearGradient(0, 0, 0, 260);
         gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');

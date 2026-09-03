@@ -15,25 +15,33 @@ LENDING_PROTOCOLS = {
     "aave-v3", "aave-v2", "aave",
     "compound-v3", "compound-v2", "compound",
     "morpho", "morpho-blue", "morpho-aave",
-    "spark", "spark-lending",
+    "spark", "spark-lending", "spark-savings",
+    "fluid", "fluid-lending",
+    # Solana
+    "kamino", "kamino-lend",
+    # Sui
+    "navi-lending", "navi-protocol", "scallop-lend", "scallop", "suilend",
+    # Aptos
+    "aries-markets", "echelon-market",
+    # Frax
+    "fraxlend",
+    # Others
     "venus", "venus-core-pool",
     "benqi-lending", "benqi",
-    "radiant-v2", "radiant",
     "silo-v2", "silo-finance", "silo",
     "euler", "euler-v2",
     "ionic", "ionic-protocol",
     "seamless-protocol",
     "moonwell", "moonwell-artemis",
-    "fluid", "fluid-lending",
     "zerolend", "layerbank", "init-capital",
     "justlend", "cream", "iron-bank",
-    "aave-v3-lido", "spark-savings",
+    "aave-v3-lido"
 }
 
 DEX_PROTOCOLS = {
-    "uniswap-v3", "uniswap-v2", "uniswap",
+    "uniswap-v3", "uniswap-v2", "uniswap", "uniswap-v4",
     "curve-dex", "curve-finance", "curve",
-    "aerodrome", "aerodrome-v2",
+    "aerodrome", "aerodrome-v2", "aerodrome-slipstream",
     "velodrome", "velodrome-v2",
     "camelot", "camelot-v3",
     "pancakeswap-amm-v3", "pancakeswap-amm-v2", "pancakeswap",
@@ -41,13 +49,25 @@ DEX_PROTOCOLS = {
     "trader-joe", "trader-joe-v2",
     "balancer-v2", "balancer",
     "ambient", "maverick-v2", "maverick",
-    "orca", "raydium", "thena", "ramses",
+    # Solana
+    "raydium", "raydium-clmm", "orca", "lifinity",
+    # Sui
+    "cetus-clmm", "cetus", "bluefin-spot",
+    # Aptos
+    "thalaswap", "thala",
+    # Frax / Sonic
+    "frax-swap", "beets-dex-v3", "shadow-exchange", "thena", "ramses"
 }
 
 YIELD_PROTOCOLS = {
-    "lido", "rocket-pool", "jito", "marinade-finance",
-    "convex-finance", "yearn-finance", "beefy",
-    "stargate", "pendle", "eigenlayer",
+    "lido", "rocket-pool", "convex-finance", "yearn-finance", "beefy",
+    "stargate", "stargate-v1", "pendle", "eigenlayer",
+    # Solana LST
+    "jito", "marinade-finance", "marinade",
+    # Aptos LST
+    "amnis-finance",
+    # Frax & LRT
+    "frax", "ethena", "ether.fi-stake", "ether.fi"
 }
 
 # ──────────────────────────────────────────────
@@ -124,6 +144,45 @@ PROTOCOL_APP_URLS = {
     "aerodrome": "https://aerodrome.finance",
     "aerodrome-slipstream": "https://aerodrome.finance",
     "lido": "https://stake.lido.fi",
+    # Solana
+    "kamino": "https://app.kamino.finance",
+    "kamino-lend": "https://app.kamino.finance",
+    "raydium": "https://raydium.io",
+    "raydium-clmm": "https://raydium.io",
+    "orca": "https://www.orca.so",
+    "jito": "https://www.jito.network",
+    "marinade": "https://marinade.finance",
+    "marinade-finance": "https://marinade.finance",
+    # Sui
+    "navi": "https://app.naviprotocol.io",
+    "navi-lending": "https://app.naviprotocol.io",
+    "navi-protocol": "https://app.naviprotocol.io",
+    "scallop": "https://app.scallop.io",
+    "scallop-lend": "https://app.scallop.io",
+    "cetus": "https://app.cetus.zone",
+    "cetus-clmm": "https://app.cetus.zone",
+    "suilend": "https://suilend.fi",
+    # Aptos
+    "thala": "https://app.thala.fi",
+    "thalaswap": "https://app.thala.fi",
+    "aries": "https://ariesmarkets.xyz",
+    "aries-markets": "https://ariesmarkets.xyz",
+    "amnis": "https://stake.amnis.finance",
+    "amnis-finance": "https://stake.amnis.finance",
+    # Frax Ecosystem
+    "frax": "https://app.frax.finance",
+    "fraxlend": "https://app.frax.finance/fraxlend",
+    "frax-swap": "https://app.frax.finance/swap",
+    # Others
+    "venus": "https://app.venus.io",
+    "benqi": "https://app.benqi.fi",
+    "beets": "https://beets.fi",
+    "beets-dex-v3": "https://beets.fi",
+    "silo": "https://app.silo.finance",
+    "silo-v2": "https://app.silo.finance",
+    "ethena": "https://app.ethena.fi",
+    "ether.fi": "https://app.ether.fi",
+    "ether.fi-stake": "https://app.ether.fi"
 }
 
 

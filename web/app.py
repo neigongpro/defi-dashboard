@@ -194,10 +194,62 @@ async def api_pools(
     return pools
 
 
+import requests
+
+_chart_api_cache = {}
+
 @app.get("/api/pool/{pool_id}/history")
 async def api_pool_history(pool_id: str, days: int = Query(30)):
-    history = get_pool_history(pool_id, days=days)
-    return history
+    """
+    Retrieve historical data points for a specific pool supporting 1w (7d), 1m (30d), 6m (180d), 1y (365d).
+    Uses local SQLite snapshots and falls back to DefiLlama chart API on-demand with caching.
+    """
+    local_history = get_pool_history(pool_id, days=days)
+
+    points = []
+    if len(local_history) >= min(12, days):
+        points = local_history
+    else:
+        now = time.time()
+        cached = _chart_api_cache.get(pool_id)
+        if cached and (now - cached["ts"]) < 1800:
+            raw_chart = cached["data"]
+        else:
+            try:
+                r = requests.get(f"https://yields.llama.fi/chart/{pool_id}", timeout=6)
+                if r.status_code == 200:
+                    raw_chart = r.json().get("data", [])
+                    _chart_api_cache[pool_id] = {"data": raw_chart, "ts": now}
+                else:
+                    raw_chart = []
+            except Exception:
+                raw_chart = []
+
+        if raw_chart:
+            slice_data = raw_chart[-days:] if len(raw_chart) > days else raw_chart
+            for pt in slice_data:
+                points.append({
+                    "timestamp": pt.get("timestamp"),
+                    "tvl_usd": pt.get("tvlUsd") or 0.0,
+                    "apy": round(float(pt.get("apy") or 0.0), 2),
+                    "apy_base": round(float(pt.get("apyBase") or 0.0), 2),
+                    "apy_reward": round(float(pt.get("apyReward") or 0.0), 2),
+                    "type": "chart_api"
+                })
+        else:
+            points = local_history
+
+    valid_apys = [p["apy"] for p in points if p.get("apy") is not None and p["apy"] >= 0]
+    avg_apy = round(sum(valid_apys) / len(valid_apys), 2) if valid_apys else 0.0
+    cur_apy = round(points[-1]["apy"], 2) if points else 0.0
+
+    return {
+        "points": points,
+        "avg_apy": avg_apy,
+        "cur_apy": cur_apy,
+        "days": days,
+        "count": len(points)
+    }
 
 
 class RebalanceRequest(BaseModel):

@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from data.database import init_db, insert_snapshots, get_connection
 
-# Top 10 Tier-1 Protocol slug prefixes and aliases
+# Top Tier-1 Protocol slug prefixes and aliases across EVM, Solana, Sui, Aptos, Frax, Sonic
 TIER1_PROTOCOLS = {
     # 1. Aave
     "aave-v3", "aave-v2", "aave",
@@ -28,21 +28,37 @@ TIER1_PROTOCOLS = {
     # 4. Spark
     "spark", "spark-lending", "spark-savings",
     # 5. Fluid
-    "fluid", "fluid-lending",
+    "fluid", "fluid-lending", "fluid-dex",
     # 6. Lido
     "lido",
     # 7. Uniswap
-    "uniswap-v3", "uniswap-v2", "uniswap",
+    "uniswap-v3", "uniswap-v2", "uniswap", "uniswap-v4",
     # 8. Curve
     "curve-dex", "curve-finance", "curve",
     # 9. Pendle
     "pendle",
-    # 10. Aerodrome
-    "aerodrome", "aerodrome-v2"
+    # 10. Aerodrome / Velodrome
+    "aerodrome", "aerodrome-v2", "aerodrome-slipstream", "velodrome", "velodrome-v2",
+    # 11. Solana Tier-1
+    "kamino-lend", "kamino", "raydium-clmm", "raydium", "orca", "jito", "marinade-finance", "marinade", "lifinity",
+    # 12. Sui Tier-1
+    "navi-lending", "navi-protocol", "scallop-lend", "scallop", "cetus-clmm", "cetus", "suilend", "bluefin-spot",
+    # 13. Aptos Tier-1
+    "thalaswap", "thala", "aries-markets", "amnis-finance", "echelon-market",
+    # 14. Frax Ecosystem
+    "frax", "fraxlend", "frax-swap",
+    # 15. Sonic / Plasma / Other Tier-1s
+    "beets-dex-v3", "silo-v2", "silo-finance", "venus", "venus-core-pool", "benqi", "benqi-lending",
+    "camelot", "camelot-v3", "pancakeswap", "pancakeswap-amm-v3", "balancer-v2", "balancer",
+    "yearn-finance", "beefy", "stargate", "stargate-v1", "ethena", "ether.fi-stake", "ether.fi"
 }
 
+# Explicitly verified top ecosystems (or any valid chain with verified Tier-1 TVL)
 ALLOWED_CHAINS = {
-    "ethereum", "arbitrum", "base", "optimism", "polygon", "bsc", "avalanche", "gnosis", "solana"
+    "ethereum", "base", "arbitrum", "optimism", "polygon", "bsc", "avalanche",
+    "solana", "sui", "aptos", "plasma", "fraxtal", "sonic", "gnosis",
+    "linea", "mantle", "scroll", "fantom", "celo", "blast", "sei",
+    "tron", "berachain", "zksync era", "hyperliquid l1", "unichain", "near", "ton"
 }
 
 

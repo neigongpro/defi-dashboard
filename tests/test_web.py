@@ -88,3 +88,25 @@ def test_api_rebalance_endpoint():
     data = resp.json()
     assert "evaluation" in data
     assert "ai_advice" in data
+
+
+def test_api_pool_history():
+    pools_resp = client.get("/api/pools?limit=1")
+    assert pools_resp.status_code == 200
+    pools = pools_resp.json()
+    if pools:
+        pid = pools[0]["pool_id"]
+        # Test 1w (7 days)
+        h7_resp = client.get(f"/api/pool/{pid}/history?days=7")
+        assert h7_resp.status_code == 200
+        h7 = h7_resp.json()
+        assert "points" in h7
+        assert "avg_apy" in h7
+        assert h7["days"] == 7
+
+        # Test 1m (30 days)
+        h30_resp = client.get(f"/api/pool/{pid}/history?days=30")
+        assert h30_resp.status_code == 200
+        h30 = h30_resp.json()
+        assert "points" in h30
+        assert h30["days"] == 30
