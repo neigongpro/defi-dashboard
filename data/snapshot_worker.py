@@ -53,7 +53,7 @@ def is_tier1_protocol(project_slug: str) -> bool:
 
 
 def fetch_and_store_snapshots(
-    min_tvl: float = 1_000_000,
+    min_tvl: float = 100_000,
     db_path: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """

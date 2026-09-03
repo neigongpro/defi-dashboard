@@ -96,16 +96,35 @@ templates = Jinja2Templates(directory=TEMPLATES_DIR)
 # ──────────────────────────────────────────────
 
 @app.get("/", response_class=HTMLResponse)
-async def view_dashboard(request: Request):
-    overview = get_market_overview()
-    pools = get_enriched_pools(stables_only=True, limit=50)
+async def view_dashboard(request: Request, tab: str = Query("all")):
+    is_stables = (tab == "stables")
+    active_tab = "stables" if is_stables else "all"
+    overview = get_market_overview(stables_only=is_stables)
+    pools = get_enriched_pools(stables_only=is_stables, min_tvl=100_000, limit=60)
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
         context={
             "overview": overview,
             "pools": pools,
-            "active_tab": "dashboard"
+            "active_tab": active_tab,
+            "stables_only": is_stables
+        }
+    )
+
+
+@app.get("/stables", response_class=HTMLResponse)
+async def view_stables(request: Request):
+    overview = get_market_overview(stables_only=True)
+    pools = get_enriched_pools(stables_only=True, min_tvl=100_000, limit=60)
+    return templates.TemplateResponse(
+        request=request,
+        name="dashboard.html",
+        context={
+            "overview": overview,
+            "pools": pools,
+            "active_tab": "stables",
+            "stables_only": True
         }
     )
 
@@ -141,8 +160,8 @@ async def view_pool_detail(request: Request, pool_id: str):
 # ──────────────────────────────────────────────
 
 @app.get("/api/overview")
-async def api_overview():
-    return get_market_overview()
+async def api_overview(stables_only: bool = Query(False)):
+    return get_market_overview(stables_only=stables_only)
 
 
 @app.get("/api/pools")
@@ -151,10 +170,11 @@ async def api_pools(
     chain: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
     protocol: Optional[str] = Query(None),
-    stables_only: bool = Query(True),
-    min_tvl: float = Query(1_000_000),
+    stables_only: bool = Query(False),
+    min_tvl: float = Query(100_000),
     sort_by: str = Query("apy"),
-    limit: int = Query(60)
+    sort_order: str = Query("desc"),
+    limit: int = Query(70)
 ):
     assets_list = [a.strip().upper() for a in asset.split(",") if a.strip()] if asset else None
     chains_list = [c.strip() for c in chain.split(",") if c.strip()] if chain else None
@@ -168,6 +188,7 @@ async def api_pools(
         stables_only=stables_only,
         min_tvl=min_tvl,
         sort_by=sort_by,
+        sort_order=sort_order,
         limit=limit
     )
     return pools

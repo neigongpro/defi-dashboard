@@ -115,8 +115,9 @@ def get_enriched_pools(
     protocols: Optional[List[str]] = None,
     category: Optional[str] = None,
     stables_only: bool = False,
-    min_tvl: float = 1_000_000,
+    min_tvl: float = 100_000,
     sort_by: str = "apy",
+    sort_order: str = "desc",
     limit: int = 100,
     db_path: Optional[str] = None
 ) -> List[Dict[str, Any]]:
@@ -131,7 +132,7 @@ def get_enriched_pools(
         chains=chains,
         protocols=protocols,
         min_tvl=min_tvl,
-        limit=limit * 3
+        limit=max(limit * 3, 300)
     )
 
     enriched = []
@@ -196,21 +197,31 @@ def get_enriched_pools(
         })
 
     # Sorting
+    is_reverse = (sort_order.lower() != "asc")
+
     if sort_by == "tvl":
-        enriched.sort(key=lambda x: x["tvl_usd"], reverse=True)
+        enriched.sort(key=lambda x: x["tvl_usd"], reverse=is_reverse)
+    elif sort_by in ("apy_avg_30d", "30d", "apy_30d"):
+        enriched.sort(key=lambda x: x["apy_avg_30d"], reverse=is_reverse)
     elif sort_by == "stability":
-        enriched.sort(key=lambda x: (x["stability_score"], x["apy"]), reverse=True)
+        enriched.sort(key=lambda x: (x["stability_score"], x["apy"]), reverse=is_reverse)
     elif sort_by == "real_yield":
-        enriched.sort(key=lambda x: (x["apy_base"], x["tvl_usd"]), reverse=True)
+        enriched.sort(key=lambda x: (x["apy_base"], x["tvl_usd"]), reverse=is_reverse)
+    elif sort_by == "project":
+        enriched.sort(key=lambda x: x["project"].lower(), reverse=is_reverse)
+    elif sort_by == "symbol":
+        enriched.sort(key=lambda x: x["symbol"].lower(), reverse=is_reverse)
+    elif sort_by == "chain":
+        enriched.sort(key=lambda x: x["chain"].lower(), reverse=is_reverse)
     else:  # default apy
-        enriched.sort(key=lambda x: x["apy"], reverse=True)
+        enriched.sort(key=lambda x: x["apy"], reverse=is_reverse)
 
     return enriched[:limit]
 
 
-def get_market_overview(db_path: Optional[str] = None) -> Dict[str, Any]:
+def get_market_overview(stables_only: bool = False, db_path: Optional[str] = None) -> Dict[str, Any]:
     """Calculate high-level market summary for dashboard top cards."""
-    all_pools = get_enriched_pools(min_tvl=1_000_000, limit=300, db_path=db_path)
+    all_pools = get_enriched_pools(min_tvl=100_000, limit=300, stables_only=stables_only, db_path=db_path)
     if not all_pools:
         return {
             "total_tvl_monitored": 0,
@@ -221,8 +232,8 @@ def get_market_overview(db_path: Optional[str] = None) -> Dict[str, Any]:
         }
 
     total_tvl = sum(p["tvl_usd"] for p in all_pools)
-    stables = [p["apy"] for p in all_pools if any(s in p["symbol"] for s in ["USDC", "USDT", "DAI", "USDE"])]
-    eth_pools = [p["apy"] for p in all_pools if any(s in p["symbol"] for s in ["ETH", "WETH", "STETH"])]
+    stables = [p["apy"] for p in all_pools if any(s in p["symbol"].upper() for s in ["USDC", "USDT", "DAI", "USDS", "USDE", "PYUSD"])]
+    eth_pools = [p["apy"] for p in all_pools if any(s in p["symbol"].upper() for s in ["ETH", "WETH", "STETH"])]
 
     avg_stable = (sum(stables) / len(stables)) if stables else 0.0
     avg_eth = (sum(eth_pools) / len(eth_pools)) if eth_pools else 0.0
