@@ -1,37 +1,42 @@
 {% extends "base.html" %}
 
-{% block title %}Мой Портфель — Личный Кабинет DeFi{% endblock %}
+{% block title %}Мой Портфель & Boost — Личный Кабинет DeFi{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto space-y-4">
+<div class="max-w-7xl mx-auto space-y-4">
     <!-- Top Bar Navigation & Header -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-white/[0.06]">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/[0.06]">
         <div>
             <div class="flex items-center space-x-2">
-                <div class="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/25 flex items-center justify-center text-teal-300">
-                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                <div class="w-7 h-7 rounded-lg bg-teal-500/15 border border-teal-500/25 flex items-center justify-center text-teal-300 shadow-sm shadow-teal-500/10">
+                    <i data-lucide="zap" class="w-4 h-4"></i>
                 </div>
                 <div>
                     <h1 class="text-sm font-bold text-white flex items-center space-x-2">
-                        <span>Личный Кабинет & Память Капитала</span>
-                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/20 font-mono">SQLite + LocalStorage</span>
+                        <span>Личный Кабинет & Boost Позиций</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-300 border border-teal-500/20 font-mono">Web3 Analytics</span>
                     </h1>
                 </div>
             </div>
-            <p class="text-[11px] text-gray-400 mt-1">
-                Учёт ваших депозитов в DeFi-протоколах, расчет пассивного дохода и стратегический AI-аудит рисков.
+            <p class="text-[11px] text-gray-400 mt-0.5">
+                Мультичейн-учёт позиций капитала (Supply, Borrow, LP v3), расчет комиссий, Impermanent Loss и PnL с автоматическим подтягиванием 25+ сетей.
             </p>
         </div>
 
-        <div class="flex items-center space-x-2 shrink-0">
-            <button onclick="openAddModal()" class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
-                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                <span>Добавить позицию</span>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button onclick="openBoostModal()" class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center space-x-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer">
+                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                <span>🚀 Boost / Добавить позицию</span>
             </button>
 
-            <button onclick="evaluatePortfolioAI()" id="evalAiBtn" class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
+            <button onclick="toggleWalletScanner()" id="toggleScanBtn" class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                <i data-lucide="scan" class="w-3.5 h-3.5"></i>
+                <span>🔍 Отслеживать кошелек</span>
+            </button>
+
+            <button onclick="evaluatePortfolioAI()" id="evalAiBtn" class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
                 <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-                <span>Оценить через AI</span>
+                <span>AI-Аудит</span>
             </button>
 
             <a href="javascript:goBackToTable()" class="px-3 py-1.5 rounded-md text-[11px] font-medium bg-[#0e121b] hover:bg-white/[0.08] text-gray-300 hover:text-white transition-all border border-white/[0.08] flex items-center space-x-1.5 cursor-pointer">
@@ -43,17 +48,18 @@
 
     <!-- Summary KPI Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <!-- Total Capital -->
+        <!-- Total Capital / Working Assets -->
         <div class="mini-card rounded-xl p-3.5 border border-white/[0.07] bg-[#0b0d13] relative overflow-hidden">
             <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-1 flex items-center justify-between">
                 <span>Капитал в работе</span>
-                <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <i data-lucide="coins" class="w-3.5 h-3.5 text-emerald-400"></i>
             </div>
             <div class="text-xl font-bold font-mono text-white mt-1" id="kpiTotalCapital">
                 ${{ "{:,.2f}".format(summary.total_capital) }}
             </div>
-            <div class="text-[10px] text-gray-500 mt-1 font-mono" id="kpiPositionsCount">
-                {{ summary.positions_count }} активных позиций
+            <div class="text-[10px] text-gray-400 mt-1 font-mono flex items-center justify-between" id="kpiNetCapitalRow">
+                <span>Чистый капитал:</span>
+                <span class="text-emerald-400 font-semibold" id="kpiNetCapital">${{ "{:,.2f}".format(summary.get('net_capital_usd', summary.total_capital)) }}</span>
             </div>
         </div>
 
@@ -66,121 +72,264 @@
             <div class="text-xl font-bold font-mono text-teal-300 mt-1" id="kpiWeightedApy">
                 {{ "{:.2f}".format(summary.weighted_apy) }}%
             </div>
-            <div class="text-[10px] text-gray-500 mt-1">
-                Средневзвешенная ставка
+            <div class="text-[10px] text-gray-500 mt-1" id="kpiPositionsCount">
+                {{ summary.positions_count }} активных позиций
             </div>
         </div>
 
-        <!-- Monthly Income -->
+        <!-- Passive Cash Flow (Monthly & Annual) -->
         <div class="mini-card rounded-xl p-3.5 border border-white/[0.07] bg-[#0b0d13]">
             <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-1 flex items-center justify-between">
-                <span>Доход в месяц</span>
+                <span>Пассивный доход</span>
                 <i data-lucide="calendar" class="w-3.5 h-3.5 text-sky-400"></i>
             </div>
             <div class="text-xl font-bold font-mono text-sky-300 mt-1" id="kpiMonthlyIncome">
-                +${{ "{:,.2f}".format(summary.monthly_income) }}
+                +${{ "{:,.2f}".format(summary.monthly_income) }}<span class="text-[10px] text-gray-400 font-sans font-normal"> /мес</span>
             </div>
-            <div class="text-[10px] text-gray-500 mt-1">
-                Пассивный денежный поток
+            <div class="text-[10px] text-gray-400 mt-1 font-mono" id="kpiAnnualIncome">
+                +${{ "{:,.2f}".format(summary.annual_income) }} /год
             </div>
         </div>
 
-        <!-- Annual Income -->
+        <!-- Total Net PnL & Yield Earned -->
         <div class="mini-card rounded-xl p-3.5 border border-white/[0.07] bg-[#0b0d13]">
             <div class="text-[10px] uppercase tracking-wider font-semibold text-gray-400 mb-1 flex items-center justify-between">
-                <span>Доход в год</span>
+                <span>Совокупный PnL</span>
                 <i data-lucide="award" class="w-3.5 h-3.5 text-amber-400"></i>
             </div>
-            <div class="text-xl font-bold font-mono text-amber-300 mt-1" id="kpiAnnualIncome">
-                +${{ "{:,.2f}".format(summary.annual_income) }}
+            <div class="text-xl font-bold font-mono {% if summary.get('total_net_pnl', 0) >= 0 %}text-emerald-300{% else %}text-rose-300{% endif %} mt-1" id="kpiTotalPnl">
+                {% if summary.get('total_net_pnl', 0) >= 0 %}+{% endif %}${{ "{:,.2f}".format(summary.get('total_net_pnl', 0.0)) }}
             </div>
-            <div class="text-[10px] text-gray-500 mt-1">
-                Прогноз на 365 дней
+            <div class="text-[10px] text-gray-400 mt-1 font-mono flex items-center justify-between">
+                <span>Комиссии/доход:</span>
+                <span class="text-teal-400 font-semibold" id="kpiTotalYield">+${{ "{:,.2f}".format(summary.get('total_yield_earned', 0.0)) }}</span>
             </div>
         </div>
     </div>
 
-    <!-- AI Portfolio Advisor Report Area (Dynamically displayed) -->
+    <!-- Web3 Public Wallet Tracker Card (Collapsible) -->
+    <div id="walletScannerCard" class="{% if not auto_open_scan %}hidden{% endif %} mini-card rounded-xl p-4 border border-sky-500/30 bg-[#0c1322]/80 backdrop-blur-md relative shadow-xl transition-all">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-sky-500/20">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-6 h-6 rounded bg-sky-500/20 flex items-center justify-center text-sky-400">
+                    <i data-lucide="radar" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h2 class="text-xs font-bold text-white flex items-center space-x-2">
+                        <span>Ончейн-сканер публичного адреса (Web3 Wallet Explorer)</span>
+                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">Auto-Detect</span>
+                    </h2>
+                    <p class="text-[10px] text-gray-400">
+                        Введите адрес кошелька для автоматического выявления позиций в Aave, Morpho, Uniswap v3, Spark и Curve с подсчётом доходности, комиссий и PnL.
+                    </p>
+                </div>
+            </div>
+            <button onclick="toggleWalletScanner()" class="text-gray-400 hover:text-white p-1 text-xs cursor-pointer">✕</button>
+        </div>
+
+        <div class="space-y-3">
+            <div class="flex flex-col md:flex-row gap-2.5">
+                <div class="flex-1 relative">
+                    <input type="text" id="walletAddressInput" placeholder="0x... (EVM адрес) или Solana / Sui публичный ключ" class="w-full bg-[#07090e] text-gray-200 placeholder-gray-600 rounded-lg px-3 py-2 border border-white/[0.12] focus:outline-none focus:border-sky-500 font-mono text-xs">
+                </div>
+                <button onclick="scanWalletAddress()" id="scanAddressBtn" class="px-4 py-2 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white transition-all flex items-center justify-center space-x-2 shrink-0 cursor-pointer shadow-md shadow-sky-600/20">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                    <span>Сканировать ончейн</span>
+                </button>
+            </div>
+
+            <!-- EVM Network Badges Toggle -->
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Сети для сканирования:</span>
+                    <button onclick="toggleAllChains(true)" class="text-[10px] text-sky-400 hover:underline cursor-pointer">Выбрать все</button>
+                </div>
+                <div class="flex flex-wrap gap-1.5" id="chainCheckboxes">
+                    {% for c in evm_chains %}
+                    <label class="cursor-pointer">
+                        <input type="checkbox" name="scan_chain" value="{{ c }}" checked class="peer sr-only">
+                        <span class="px-2 py-1 rounded text-[10px] font-medium border border-white/[0.08] bg-white/[0.03] text-gray-400 peer-checked:bg-sky-500/20 peer-checked:text-sky-300 peer-checked:border-sky-500/40 transition-all flex items-center space-x-1">
+                            <span>{{ c }}</span>
+                        </span>
+                    </label>
+                    {% endfor %}
+                    <label class="cursor-pointer">
+                        <input type="checkbox" name="scan_chain" value="Solana" checked class="peer sr-only">
+                        <span class="px-2 py-1 rounded text-[10px] font-medium border border-white/[0.08] bg-white/[0.03] text-gray-400 peer-checked:bg-purple-500/20 peer-checked:text-purple-300 peer-checked:border-purple-500/40 transition-all">
+                            Solana
+                        </span>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="checkbox" name="scan_chain" value="Sui" checked class="peer sr-only">
+                        <span class="px-2 py-1 rounded text-[10px] font-medium border border-white/[0.08] bg-white/[0.03] text-gray-400 peer-checked:bg-cyan-500/20 peer-checked:text-cyan-300 peer-checked:border-cyan-500/40 transition-all">
+                            Sui
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Scan Results Container -->
+            <div id="scanResultsArea" class="hidden pt-3 border-t border-sky-500/20 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="text-xs font-semibold text-white flex items-center space-x-2">
+                        <span id="scanStatusMsg">Найдено позиций: 0</span>
+                    </div>
+                    <button onclick="importScannedPositions()" id="importScannedBtn" class="px-3 py-1.5 rounded text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Импортировать все в мой портфель</span>
+                    </button>
+                </div>
+                <div id="scannedCardsList" class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Portfolio Advisor Report Area -->
     <div id="aiReportCard" class="hidden mini-card rounded-xl p-4 border border-purple-500/30 bg-purple-950/10 relative">
         <div class="flex items-center justify-between pb-2 mb-3 border-b border-purple-500/20">
             <div class="flex items-center space-x-2">
                 <div class="w-6 h-6 rounded-md bg-purple-500/20 flex items-center justify-center text-purple-300">
                     <i data-lucide="bot" class="w-3.5 h-3.5"></i>
                 </div>
-                <span class="text-xs font-bold text-purple-200">Стратегический аудит портфеля (Gemini 3.8 Flash)</span>
+                <span class="text-xs font-bold text-purple-200">Стратегический аудит портфеля (Gemini AI Flash)</span>
             </div>
-            <button onclick="document.getElementById('aiReportCard').classList.add('hidden')" class="text-gray-400 hover:text-white p-1 text-xs cursor-pointer">
-                ✕
-            </button>
+            <button onclick="document.getElementById('aiReportCard').classList.add('hidden')" class="text-gray-400 hover:text-white p-1 text-xs cursor-pointer">✕</button>
         </div>
-
-        <div id="aiReportContent" class="text-xs text-gray-200 leading-relaxed space-y-2 whitespace-pre-wrap font-sans">
-            <!-- Populated via API -->
-        </div>
+        <div id="aiReportContent" class="text-xs text-gray-200 leading-relaxed space-y-2 whitespace-pre-wrap font-sans"></div>
     </div>
 
     <!-- Active Positions Table Card -->
-    <div class="mini-card rounded-xl border border-white/[0.07] bg-[#0b0d13] overflow-hidden">
-        <div class="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between">
+    <div class="mini-card rounded-xl border border-white/[0.07] bg-[#0b0d13] overflow-hidden shadow-lg">
+        <div class="px-4 py-3 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div class="flex items-center space-x-2">
                 <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
-                <h2 class="text-xs font-semibold text-white">Мои Активные Позиции</h2>
+                <h2 class="text-xs font-semibold text-white">Активные DeFi Позиции</h2>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/[0.05] text-gray-400" id="tableHeaderCount">
+                    {{ positions | length }}
+                </span>
             </div>
-            <span class="text-[10px] font-mono text-gray-400" id="tableHeaderCount">
-                Всего позиций: {{ positions | length }}
-            </span>
+
+            <!-- Position Type Filter Pills -->
+            <div class="flex items-center space-x-1 text-[10px]">
+                <button onclick="filterPositionsTable('all')" class="px-2 py-0.5 rounded bg-white/[0.08] text-white font-medium filter-tab active cursor-pointer" data-filter="all">Все</button>
+                <button onclick="filterPositionsTable('lending')" class="px-2 py-0.5 rounded bg-white/[0.03] text-gray-400 hover:text-white filter-tab cursor-pointer" data-filter="lending">Supply (Кредитование)</button>
+                <button onclick="filterPositionsTable('borrow')" class="px-2 py-0.5 rounded bg-white/[0.03] text-gray-400 hover:text-white filter-tab cursor-pointer" data-filter="borrow">Borrow (Займы)</button>
+                <button onclick="filterPositionsTable('liquidity_pool')" class="px-2 py-0.5 rounded bg-white/[0.03] text-gray-400 hover:text-white filter-tab cursor-pointer" data-filter="liquidity_pool">DEX LP</button>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
                 <thead class="bg-white/[0.02] border-b border-white/[0.05] text-[10px] uppercase font-semibold text-gray-400">
                     <tr>
-                        <th class="py-2.5 px-3">Протокол</th>
-                        <th class="py-2.5 px-2.5">Сеть</th>
-                        <th class="py-2.5 px-2.5">Актив</th>
-                        <th class="py-2.5 px-3 text-right">Капитал ($)</th>
-                        <th class="py-2.5 px-3 text-right">Текущий APY</th>
-                        <th class="py-2.5 px-3 text-right">Доход / Месяц</th>
-                        <th class="py-2.5 px-3">Заметки</th>
+                        <th class="py-2.5 px-3">Тип</th>
+                        <th class="py-2.5 px-3">Протокол & Сеть</th>
+                        <th class="py-2.5 px-3">Актив / Пул</th>
+                        <th class="py-2.5 px-3">Дата входа</th>
+                        <th class="py-2.5 px-3 text-right">Начало ($)</th>
+                        <th class="py-2.5 px-3 text-right">Текущая ст-ть ($)</th>
+                        <th class="py-2.5 px-3 text-right">Ставка (APY)</th>
+                        <th class="py-2.5 px-3 text-right">Доход / Долг</th>
+                        <th class="py-2.5 px-3 text-right">Комиссии / IL</th>
+                        <th class="py-2.5 px-3 text-right">Net PnL</th>
                         <th class="py-2.5 px-3 text-center">Действия</th>
                     </tr>
                 </thead>
                 <tbody id="positionsTableBody" class="divide-y divide-white/[0.03]">
                     {% if positions %}
                         {% for p in positions %}
-                        <tr id="pos-row-{{ p.id }}" class="hover:bg-white/[0.02] transition-colors">
+                        <tr id="pos-row-{{ p.id }}" class="hover:bg-white/[0.02] transition-colors pos-row" data-type="{{ p.position_type or 'lending' }}">
+                            <td class="py-2 px-3">
+                                {% if p.position_type == 'borrow' %}
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/15 text-rose-300 border border-rose-500/25">BORROW</span>
+                                {% elif p.position_type in ['liquidity_pool', 'lp'] %}
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25">LP v3</span>
+                                {% else %}
+                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">SUPPLY</span>
+                                {% endif %}
+                            </td>
                             <td class="py-2 px-3">
                                 <div class="flex items-center space-x-2">
                                     <div class="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-bold text-[9px] text-emerald-400">
                                         {{ p.protocol[:2] | upper }}
                                     </div>
-                                    <span class="font-semibold text-white capitalize">{{ p.protocol }}</span>
+                                    <div>
+                                        <div class="font-semibold text-white capitalize leading-tight">{{ p.protocol }}</div>
+                                        <div class="text-[10px] text-gray-400">{{ p.chain }}</div>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="py-2 px-2.5">
-                                <span class="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] text-gray-300 border border-white/[0.06]">
-                                    {{ p.chain }}
-                                </span>
+                            <td class="py-2 px-3">
+                                <div>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                                        {{ p.asset }}
+                                    </span>
+                                </div>
+                                {% if p.position_type in ['liquidity_pool', 'lp'] and p.entry_amount_a %}
+                                <div class="mt-1 text-[9px] font-mono text-gray-400 space-y-0.5 max-w-[200px]">
+                                    <div title="Количество и цена токенов на входе">
+                                        <span class="text-gray-500">Вход:</span> {{ "{:,.3f}".format(p.entry_amount_a) }} (${{ "{:,.0f}".format(p.entry_price_a or 0) }}) + {{ "{:,.1f}".format(p.entry_amount_b or 0) }} (${{ "{:,.2f}".format(p.entry_price_b or 0) }})
+                                    </div>
+                                    <div title="Количество и цена токенов сейчас">
+                                        <span class="text-gray-500">Сейчас:</span> <span class="text-teal-300">{{ "{:,.3f}".format(p.current_amount_a or p.entry_amount_a) }}</span> (${{ "{:,.0f}".format(p.current_price_a or p.entry_price_a or 0) }}) + <span class="text-teal-300">{{ "{:,.1f}".format(p.current_amount_b or p.entry_amount_b or 0) }}</span> (${{ "{:,.2f}".format(p.current_price_b or p.entry_price_b or 0) }})
+                                    </div>
+                                </div>
+                                {% endif %}
                             </td>
-                            <td class="py-2 px-2.5">
-                                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                                    {{ p.asset }}
-                                </span>
+                            <td class="py-2 px-3 font-mono text-[11px] text-gray-400">
+                                {{ p.entry_date or p.created_at[:10] }}
+                            </td>
+                            <td class="py-2 px-3 text-right font-mono text-gray-300">
+                                ${{ "{:,.2f}".format(p.initial_value_usd or p.amount_usd) }}
                             </td>
                             <td class="py-2 px-3 text-right font-mono font-bold text-white">
-                                ${{ "{:,.2f}".format(p.amount_usd) }}
+                                ${{ "{:,.2f}".format(p.current_value_usd or p.amount_usd) }}
                             </td>
                             <td class="py-2 px-3 text-right font-mono font-bold text-emerald-400">
                                 {{ p.current_apy }}%
                             </td>
-                            <td class="py-2 px-3 text-right font-mono text-teal-300">
-                                +${{ "{:,.2f}".format((p.amount_usd * p.current_apy / 100.0) / 12.0) }}
+                            <td class="py-2 px-3 text-right font-mono">
+                                {% if p.position_type == 'borrow' %}
+                                    <span class="text-rose-400">-${{ "{:,.2f}".format(p.borrow_debt_usd or 0.0) }}</span>
+                                    {% if p.borrow_debt_tokens %}
+                                        <div class="text-[9px] text-rose-400/80 font-mono">(-{{ "{:,.3f}".format(p.borrow_debt_tokens) }} {{ p.asset }})</div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-teal-300">+${{ "{:,.2f}".format(p.earned_yield_usd or 0.0) }}</span>
+                                    {% if p.earned_yield_tokens %}
+                                        <div class="text-[9px] text-teal-400/80 font-mono">(+{{ "{:,.3f}".format(p.earned_yield_tokens) }} {{ p.asset }})</div>
+                                    {% endif %}
+                                {% endif %}
                             </td>
-                            <td class="py-2 px-3 text-gray-400 text-[11px] truncate max-w-[150px]">
-                                {{ p.notes if p.notes else '—' }}
+                            <td class="py-2 px-3 text-right font-mono text-[11px]">
+                                {% if p.position_type in ['liquidity_pool', 'lp'] %}
+                                    <div class="text-teal-300">+${{ "{:,.2f}".format(p.fee_earnings_usd or 0.0) }}</div>
+                                    {% if p.impermanent_loss_usd %}
+                                        <div class="text-[9px] text-rose-400">IL: -${{ "{:,.2f}".format(p.impermanent_loss_usd) }}</div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-gray-500">—</span>
+                                    {% if p.current_price_a and p.current_price_a > 1.0 %}
+                                        <div class="text-[9px] text-gray-500 font-mono">${{ "{:,.0f}".format(p.current_price_a) }}</div>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="py-2 px-3 text-right font-mono font-bold">
+                                {% if (p.net_pnl_usd or 0.0) >= 0 %}
+                                    <span class="text-emerald-400">+${{ "{:,.2f}".format(p.net_pnl_usd or 0.0) }}</span>
+                                    <div class="text-[9px] text-emerald-500 font-normal">({% if p.net_pnl_pct %}+{{ p.net_pnl_pct }}%{% else %}+0.0%{% endif %})</div>
+                                {% else %}
+                                    <span class="text-rose-400">-${{ "{:,.2f}".format(abs(p.net_pnl_usd or 0.0)) }}</span>
+                                    <div class="text-[9px] text-rose-500 font-normal">({{ p.net_pnl_pct }}%)</div>
+                                {% endif %}
                             </td>
                             <td class="py-2 px-3 text-center">
-                                <div class="flex items-center justify-center space-x-2">
+                                <div class="flex items-center justify-center space-x-1.5">
+                                    <button onclick="editPosition({{ p.id }})" class="text-gray-400 hover:text-emerald-300 p-1 transition-colors cursor-pointer" title="Редактировать позицию">
+                                        <i data-lucide="edit-3" class="w-3 h-3"></i>
+                                    </button>
                                     <a href="/advisor?asset={{ p.asset }}&protocol={{ p.protocol }}&chain={{ p.chain }}&apy={{ p.current_apy }}&amount={{ p.amount_usd }}" class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/25 transition-all inline-flex items-center space-x-1" title="Оценить ребаланс этой позиции">
                                         <i data-lucide="sparkles" class="w-2.5 h-2.5"></i>
                                         <span>Ребаланс</span>
@@ -194,11 +343,11 @@
                         {% endfor %}
                     {% else %}
                         <tr id="emptyRow">
-                            <td colspan="8" class="text-center py-10 text-gray-500">
+                            <td colspan="11" class="text-center py-10 text-gray-500">
                                 <i data-lucide="inbox" class="w-8 h-8 mx-auto text-gray-600 mb-2"></i>
                                 <div class="text-xs text-gray-400 font-medium">Нет добавленных позиций</div>
                                 <div class="text-[11px] text-gray-500 mt-1">
-                                    Нажмите «Добавить позицию», чтобы зафиксировать ваш капитал и получать точные рекомендации AI.
+                                    Нажмите «🚀 Boost / Добавить позицию» или отсканируйте публичный адрес кошелька выше.
                                 </div>
                             </td>
                         </tr>
@@ -209,94 +358,258 @@
     </div>
 </div>
 
-<!-- Modal: Add / Edit Position -->
-<div id="addPosModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-    <div class="bg-[#0e111a] border border-white/[0.1] rounded-xl max-w-md w-full p-4 shadow-2xl relative" onclick="event.stopPropagation()">
-        <!-- Header -->
-        <div class="flex items-center justify-between pb-2 mb-3 border-b border-white/[0.08]">
+<!-- Modal: 🚀 Boost / Добавить или редактировать позицию -->
+<div id="boostPosModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 overflow-y-auto">
+    <div class="bg-[#0e111a] border border-white/[0.12] rounded-xl max-w-xl w-full p-4.5 shadow-2xl relative my-6" onclick="event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-white/[0.08]">
             <div class="flex items-center space-x-2">
-                <div class="w-6 h-6 rounded bg-emerald-500/15 flex items-center justify-center text-emerald-400">
-                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                <div class="w-6 h-6 rounded bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <i data-lucide="zap" class="w-3.5 h-3.5"></i>
                 </div>
-                <h3 class="text-xs font-bold text-white">Добавить позицию капитала</h3>
+                <div>
+                    <h3 class="text-xs font-bold text-white" id="modalTitle">🚀 Boost Позиции: Автозаполнение & Математика PnL</h3>
+                    <p class="text-[10px] text-gray-400">Подтягивает актуальные ставки из 5,145 пулов и 25+ сетей</p>
+                </div>
             </div>
-            <button onclick="closeAddModal()" class="text-gray-400 hover:text-white p-1 text-xs cursor-pointer">✕</button>
+            <button onclick="closeBoostModal()" class="text-gray-400 hover:text-white p-1 text-xs cursor-pointer">✕</button>
         </div>
 
-        <!-- Form -->
+        <!-- Position Type Selector Tabs -->
+        <div class="grid grid-cols-3 gap-1.5 p-1 bg-[#07090e] rounded-lg border border-white/[0.06] mb-3 text-center text-xs font-medium">
+            <button type="button" onclick="setPosType('lending')" id="tabLending" class="py-1.5 rounded-md transition-all cursor-pointer bg-emerald-600/25 text-emerald-300 border border-emerald-500/40">
+                🏦 Кредитование (Supply)
+            </button>
+            <button type="button" onclick="setPosType('borrow')" id="tabBorrow" class="py-1.5 rounded-md transition-all cursor-pointer text-gray-400 hover:text-white">
+                💳 Заем (Borrow)
+            </button>
+            <button type="button" onclick="setPosType('liquidity_pool')" id="tabLp" class="py-1.5 rounded-md transition-all cursor-pointer text-gray-400 hover:text-white">
+                💧 Пул Ликвидности (LP)
+            </button>
+        </div>
+
+        <!-- Position Form -->
         <form id="positionForm" onsubmit="submitPositionForm(event)" class="space-y-3 text-xs">
-            <div class="grid grid-cols-2 gap-2.5">
-                <div>
-                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Актив</label>
-                    <select id="formAsset" required class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono">
-                        <option value="USDT">USDT (Tether)</option>
-                        <option value="USDC">USDC (Circle)</option>
-                        <option value="DAI">DAI / USDS</option>
-                        <option value="USDE">USDe (Ethena)</option>
-                        <option value="ETH">ETH / WETH</option>
-                        <option value="WBTC">WBTC / cbBTC</option>
-                        <option value="SOL">SOL (Solana)</option>
-                        <option value="SUI">SUI</option>
-                    </select>
+            <input type="hidden" id="formPosType" value="lending">
+            <input type="hidden" id="formPoolId" value="">
+            <input type="hidden" id="formEditPosId" value="">
+
+            <!-- Autocomplete Selectors: Chain, Protocol, Asset -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <!-- Chain Selector / Autocomplete -->
+                <div class="relative">
+                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Сеть (25+ Chains)</label>
+                    <input type="text" id="formChainInput" autocomplete="off" placeholder="Напр. Arbitrum..." required
+                           oninput="onChainInput(this.value)" onfocus="showChainDropdown()"
+                           class="w-full bg-[#07090e] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 text-xs">
+                    <div id="chainDropdown" class="hidden absolute left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto bg-[#0d1017] border border-white/[0.1] rounded shadow-2xl z-30 divide-y divide-white/[0.03]"></div>
                 </div>
 
-                <div>
+                <!-- Protocol Selector / Autocomplete -->
+                <div class="relative">
                     <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Протокол</label>
-                    <select id="formProtocol" required class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500">
-                        <option value="aave-v3">Aave v3</option>
-                        <option value="morpho-blue">Morpho Blue</option>
-                        <option value="compound-v3">Compound v3</option>
-                        <option value="spark">Spark</option>
-                        <option value="fluid">Fluid</option>
-                        <option value="curve">Curve</option>
-                        <option value="uniswap-v3">Uniswap v3</option>
-                        <option value="lido">Lido</option>
-                        <option value="pendle">Pendle</option>
-                        <option value="aerodrome">Aerodrome</option>
-                        <option value="kamino">Kamino</option>
-                        <option value="navi">Navi Protocol</option>
-                    </select>
+                    <input type="text" id="formProtocolInput" autocomplete="off" placeholder="Aave, Morpho, Uni..." required
+                           oninput="onProtocolInput(this.value)" onfocus="showProtocolDropdown()"
+                           class="w-full bg-[#07090e] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 text-xs">
+                    <div id="protocolDropdown" class="hidden absolute left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto bg-[#0d1017] border border-white/[0.1] rounded shadow-2xl z-30 divide-y divide-white/[0.03]"></div>
+                </div>
+
+                <!-- Asset / Pool Symbol with Live Autocomplete -->
+                <div class="relative">
+                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Актив / Пул</label>
+                    <input type="text" id="formAssetInput" autocomplete="off" placeholder="USDC, ETH-USDC..." required
+                           oninput="onAssetInput(this.value)" onfocus="showAssetDropdown()"
+                           class="w-full bg-[#07090e] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
+                    <div id="assetDropdown" class="hidden absolute left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-[#0d1017] border border-white/[0.1] rounded shadow-2xl z-30 divide-y divide-white/[0.03]"></div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2.5">
+            <!-- Date Picker for Entry Date & Auto-filled APY -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Сеть (Blockchain)</label>
-                    <select id="formChain" required class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500">
-                        <option value="Ethereum">Ethereum</option>
-                        <option value="Base">Base</option>
-                        <option value="Arbitrum">Arbitrum</option>
-                        <option value="Optimism">Optimism</option>
-                        <option value="Solana">Solana</option>
-                        <option value="Sui">Sui</option>
-                        <option value="Polygon">Polygon</option>
-                        <option value="BSC">BSC</option>
-                        <option value="Avalanche">Avalanche</option>
-                    </select>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-[10px] uppercase font-semibold text-gray-400">Дата входа в позицию</label>
+                        <div class="flex items-center space-x-1 text-[9px] text-gray-500">
+                            <a href="javascript:setQuickDate(0)" class="hover:text-emerald-400">Сегодня</a>
+                            <span>•</span>
+                            <a href="javascript:setQuickDate(30)" class="hover:text-emerald-400">30д</a>
+                            <span>•</span>
+                            <a href="javascript:setQuickDate(90)" class="hover:text-emerald-400">90д</a>
+                        </div>
+                    </div>
+                    <input type="date" id="formEntryDate" onchange="recalculateModalMath()" required class="w-full bg-[#07090e] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
                 </div>
 
                 <div>
-                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Депозит ($ USD)</label>
-                    <input type="number" id="formAmount" min="10" step="1" required placeholder="10000" class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono">
+                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1 flex items-center justify-between">
+                        <span>Текущая ставка (% APY)</span>
+                        <span class="text-[9px] text-teal-400 font-normal">Автоподтягивание</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" id="formApy" min="0" max="500" step="0.01" required placeholder="5.5" oninput="recalculateModalMath()" class="w-full bg-[#07090e] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
+                        <span class="absolute right-2.5 top-2 text-[11px] font-mono text-gray-500">%</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2.5">
-                <div>
-                    <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Текущая ставка (%)</label>
-                    <input type="number" id="formApy" min="0" max="500" step="0.01" required placeholder="5.5" class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono">
+            <!-- Supply / Borrow Simple Amount Field (Hidden when LP) -->
+            <div id="simpleAmountSection" class="space-y-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-end">
+                    <div>
+                        <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Кол-во токенов (опц.)</label>
+                        <input type="number" id="formTokenAmount" step="any" placeholder="1.5" oninput="onTokenInputsChanged()" class="w-full bg-[#07090e] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Цена токена ($)</label>
+                        <input type="number" id="formTokenPrice" step="any" placeholder="1.0" oninput="onTokenInputsChanged()" class="w-full bg-[#07090e] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1" id="amountLabel">Капитал ($ USD)</label>
+                        <input type="number" id="formAmount" min="0" step="0.01" placeholder="10000" oninput="onUsdAmountChanged()" class="w-full bg-[#07090e] text-emerald-300 font-bold rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
+                    </div>
                 </div>
-
                 <div>
                     <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Заметка / Кошелек</label>
-                    <input type="text" id="formNotes" placeholder="Ledger, Кошелек 1" class="w-full bg-[#08090d] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500">
+                    <input type="text" id="formNotes" placeholder="Ledger, Safe..." class="w-full bg-[#07090e] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 text-xs">
                 </div>
             </div>
 
-            <!-- Submit Buttons -->
+            <!-- Liquidity Pool (LP v3) Detailed Fields -->
+            <div id="lpFieldsSection" class="hidden space-y-2.5 pt-1 border-t border-white/[0.06]">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-teal-300 uppercase tracking-wider flex items-center space-x-1">
+                        <i data-lucide="sliders" class="w-3 h-3"></i>
+                        <span>Параметры пула ликвидности</span>
+                    </span>
+                    <button type="button" onclick="toggleTokenC()" id="tokenCToggleBtn" class="text-[10px] text-teal-400 hover:underline cursor-pointer">
+                        + Добавить 3-й токен (TriCrypto/3pool)
+                    </button>
+                </div>
+
+                <!-- Token A -->
+                <div class="grid grid-cols-5 gap-1.5 items-center p-2 rounded bg-[#07090e] border border-white/[0.04]">
+                    <div class="col-span-1">
+                        <label class="block text-[9px] text-gray-400 mb-0.5">Токен A</label>
+                        <input type="text" id="lpTokenA" placeholder="ETH" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-white rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-gray-400 mb-0.5">Кол-во входа</label>
+                        <input type="number" id="lpAmountA" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-white rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-gray-400 mb-0.5">Цена входа ($)</label>
+                        <input type="number" id="lpPriceA" step="any" placeholder="2500" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-white rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-teal-400 mb-0.5">Кол-во сейчас</label>
+                        <input type="number" id="lpCurAmountA" step="any" placeholder="0.85" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-teal-300 rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-teal-400 mb-0.5">Цена сейчас ($)</label>
+                        <input type="number" id="lpCurPriceA" step="any" placeholder="3100" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-teal-300 rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                </div>
+
+                <!-- Token B -->
+                <div class="grid grid-cols-5 gap-1.5 items-center p-2 rounded bg-[#07090e] border border-white/[0.04]">
+                    <div class="col-span-1">
+                        <label class="block text-[9px] text-gray-400 mb-0.5">Токен B</label>
+                        <input type="text" id="lpTokenB" placeholder="USDC" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-white rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-gray-400 mb-0.5">Кол-во входа</label>
+                        <input type="number" id="lpAmountB" step="any" placeholder="2500" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-white rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-gray-400 mb-0.5">Цена входа ($)</label>
+                        <input type="number" id="lpPriceB" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-white rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-teal-400 mb-0.5">Кол-во сейчас</label>
+                        <input type="number" id="lpCurAmountB" step="any" placeholder="3100" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-teal-300 rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-teal-400 mb-0.5">Цена сейчас ($)</label>
+                        <input type="number" id="lpCurPriceB" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-teal-300 rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                </div>
+
+                <!-- Token C (Optional for 3-asset pools) -->
+                <div id="tokenCRow" class="hidden grid grid-cols-5 gap-1.5 items-center p-2 rounded bg-[#07090e] border border-white/[0.04]">
+                    <div class="col-span-1">
+                        <label class="block text-[9px] text-gray-400 mb-0.5">Токен C</label>
+                        <input type="text" id="lpTokenC" placeholder="USDT" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-white rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-gray-400 mb-0.5">Кол-во входа</label>
+                        <input type="number" id="lpAmountC" step="any" placeholder="0" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-white rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-gray-400 mb-0.5">Цена входа ($)</label>
+                        <input type="number" id="lpPriceC" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-white rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-teal-400 mb-0.5">Кол-во сейчас</label>
+                        <input type="number" id="lpCurAmountC" step="any" placeholder="0" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-teal-300 rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] text-teal-400 mb-0.5">Цена сейчас ($)</label>
+                        <input type="number" id="lpCurPriceC" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0e111a] text-teal-300 rounded px-1.5 py-1 text-[11px] font-mono border border-white/[0.08]">
+                    </div>
+                </div>
+
+                <!-- Fee Tracker -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Накопленные комиссии ($ USD)</label>
+                        <input type="number" id="lpFeeEarnings" step="0.01" placeholder="0.0" oninput="recalculateModalMath()" class="w-full bg-[#07090e] text-teal-300 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-teal-500 font-mono text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-semibold text-gray-400 mb-1">Заметка / ID позиции</label>
+                        <input type="text" id="lpNotes" placeholder="Uniswap v3 NFT #..." class="w-full bg-[#07090e] text-gray-200 rounded px-2 py-1.5 border border-white/[0.08] focus:outline-none focus:border-teal-500 text-xs">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Math Preview Panel -->
+            <div id="liveMathPreview" class="p-3 rounded-lg bg-[#06080d] border border-white/[0.07] space-y-1.5 font-mono text-xs">
+                <div class="flex items-center justify-between text-[11px] text-gray-400">
+                    <span>Начальная позиция:</span>
+                    <span id="previewEntryVal" class="text-gray-200 font-semibold">$0.00</span>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-gray-400" id="previewYieldOrDebtRow">
+                    <span id="previewYieldOrDebtLabel">Ожидаемый доход (Supply):</span>
+                    <span id="previewYieldOrDebtVal" class="text-teal-300 font-semibold">+$0.00</span>
+                </div>
+                <div id="previewLpDetails" class="hidden space-y-1.5 pt-1 border-t border-white/[0.05]">
+                    <div class="flex items-center justify-between text-[11px] text-gray-400">
+                        <span>Текущая ст-ть пула (LP):</span>
+                        <span id="previewCurrentLpVal" class="text-white font-semibold">$0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-gray-400">
+                        <span>Ст-ть при HODL (без пула):</span>
+                        <span id="previewHodlVal" class="text-gray-300">$0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-gray-400">
+                        <span>Непостоянные потери (IL):</span>
+                        <span id="previewIlVal" class="text-rose-400 font-semibold">$0.00</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between pt-1.5 border-t border-white/[0.08] text-xs font-bold">
+                    <span class="text-white">Итоговый чистый PnL:</span>
+                    <span id="previewNetPnlVal" class="text-emerald-400">+$0.00 (+0.0%)</span>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
             <div class="flex items-center justify-end space-x-2 pt-2 border-t border-white/[0.08]">
-                <button type="button" onclick="closeAddModal()" class="px-3 py-1.5 rounded text-gray-400 hover:text-white transition-colors cursor-pointer">Отмена</button>
-                <button type="submit" id="savePosBtn" class="px-4 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-sm transition-all cursor-pointer">Сохранить</button>
+                <button type="button" onclick="closeBoostModal()" class="px-3 py-1.5 rounded text-gray-400 hover:text-white transition-colors cursor-pointer text-xs">
+                    Отмена
+                </button>
+                <button type="submit" id="savePosBtn" class="px-4 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-md shadow-emerald-600/20 transition-all cursor-pointer text-xs flex items-center space-x-1.5">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                    <span id="savePosBtnText">Сохранить в портфель</span>
+                </button>
             </div>
         </form>
     </div>
@@ -305,60 +618,483 @@
 
 {% block scripts %}
 <script>
+    // State stores
+    let allChains = {{ chains | tojson | safe }};
+    let allProtocols = {{ protocols | tojson | safe }};
+    let allAssets = {{ assets | tojson | safe }};
+    let currentPositions = {{ positions | tojson | safe }};
+    let scannedPositionsCache = [];
+
     document.addEventListener("DOMContentLoaded", () => {
         syncPortfolioWithLocalStorage();
+
+        // Default entry date to today
+        document.getElementById('formEntryDate').value = new Date().toISOString().split('T')[0];
+
+        // URL trigger checks
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('boost') === '1' || {{ 'true' if auto_open_boost else 'false' }}) {
+            openBoostModal();
+        }
+        if (urlParams.get('scan') === '1' || {{ 'true' if auto_open_scan else 'false' }}) {
+            toggleWalletScanner(true);
+        }
+
+        // Setup global click listener to close autocomplete dropdowns
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#formChainInput') && !e.target.closest('#chainDropdown')) {
+                document.getElementById('chainDropdown').classList.add('hidden');
+            }
+            if (!e.target.closest('#formProtocolInput') && !e.target.closest('#protocolDropdown')) {
+                document.getElementById('protocolDropdown').classList.add('hidden');
+            }
+            if (!e.target.closest('#formAssetInput') && !e.target.closest('#assetDropdown')) {
+                document.getElementById('assetDropdown').classList.add('hidden');
+            }
+        });
     });
 
-    function openAddModal() {
-        document.getElementById('addPosModal').classList.remove('hidden');
+    // ──────────────────────────────────────────────
+    //  MODAL / BOOST TABS & CONTROLS
+    // ──────────────────────────────────────────────
+
+    function onTokenInputsChanged() {
+        const amt = parseFloat(document.getElementById('formTokenAmount').value);
+        const prc = parseFloat(document.getElementById('formTokenPrice').value);
+        if (!isNaN(amt) && !isNaN(prc) && amt > 0 && prc > 0) {
+            document.getElementById('formAmount').value = (amt * prc).toFixed(2);
+        }
+        recalculateModalMath();
     }
 
-    function closeAddModal() {
-        document.getElementById('addPosModal').classList.add('hidden');
+    function onUsdAmountChanged() {
+        const total = parseFloat(document.getElementById('formAmount').value);
+        const prc = parseFloat(document.getElementById('formTokenPrice').value);
+        if (!isNaN(total) && !isNaN(prc) && prc > 0) {
+            document.getElementById('formTokenAmount').value = (total / prc).toFixed(4);
+        }
+        recalculateModalMath();
     }
 
-    // Modal close on backdrop click or ESC
-    document.getElementById('addPosModal').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('addPosModal')) closeAddModal();
-    });
+    function openBoostModal() {
+        if (!document.getElementById('formEditPosId').value) {
+            document.getElementById('modalTitle').innerText = '🚀 Boost Позиции: Автозаполнение & Математика PnL';
+            document.getElementById('savePosBtnText').innerText = 'Сохранить в портфель';
+        }
+        document.getElementById('boostPosModal').classList.remove('hidden');
+        recalculateModalMath();
+    }
+
+    function closeBoostModal() {
+        document.getElementById('boostPosModal').classList.add('hidden');
+        document.getElementById('formEditPosId').value = '';
+        document.getElementById('positionForm').reset();
+        document.getElementById('formEntryDate').value = new Date().toISOString().split('T')[0];
+        setPosType('lending');
+    }
+
+    function editPosition(posId) {
+        const pos = currentPositions.find(p => p.id === posId || p.id == posId);
+        if (!pos) return;
+
+        document.getElementById('formEditPosId').value = pos.id;
+        document.getElementById('modalTitle').innerText = `✏️ Редактирование позиции #${pos.id} (${pos.protocol} ${pos.asset})`;
+        document.getElementById('savePosBtnText').innerText = 'Обновить позицию';
+
+        const ptype = (pos.position_type || 'lending').toLowerCase();
+        setPosType(ptype);
+
+        document.getElementById('formChainInput').value = pos.chain || '';
+        document.getElementById('formProtocolInput').value = pos.protocol || '';
+        document.getElementById('formAssetInput').value = pos.asset || '';
+        document.getElementById('formApy').value = pos.current_apy || 0;
+        document.getElementById('formEntryDate').value = pos.entry_date || (pos.created_at ? pos.created_at.substring(0, 10) : '');
+        document.getElementById('formPoolId').value = pos.pool_id || '';
+
+        if (ptype === 'liquidity_pool' || ptype === 'lp') {
+            document.getElementById('lpAmountA').value = pos.entry_amount_a || '';
+            document.getElementById('lpPriceA').value = pos.entry_price_a || '';
+            document.getElementById('lpAmountB').value = pos.entry_amount_b || '';
+            document.getElementById('lpPriceB').value = pos.entry_price_b || '';
+            document.getElementById('lpCurAmountA').value = pos.current_amount_a || pos.entry_amount_a || '';
+            document.getElementById('lpCurPriceA').value = pos.current_price_a || pos.entry_price_a || '';
+            document.getElementById('lpCurAmountB').value = pos.current_amount_b || pos.entry_amount_b || '';
+            document.getElementById('lpCurPriceB').value = pos.current_price_b || pos.entry_price_b || '';
+            document.getElementById('lpFeeEarnings').value = pos.fee_earnings_usd || '';
+            document.getElementById('lpNotes').value = pos.notes || '';
+            if (pos.asset_c && pos.entry_amount_c) {
+                const row = document.getElementById('tokenCRow');
+                if (row.classList.contains('hidden')) toggleTokenC();
+                document.getElementById('lpTokenC').value = pos.asset_c || '';
+                document.getElementById('lpAmountC').value = pos.entry_amount_c || '';
+                document.getElementById('lpPriceC').value = pos.entry_price_c || '';
+                document.getElementById('lpCurAmountC').value = pos.current_amount_c || pos.entry_amount_c || '';
+                document.getElementById('lpCurPriceC').value = pos.current_price_c || pos.entry_price_c || '';
+            }
+        } else {
+            document.getElementById('formAmount').value = pos.amount_usd || '';
+            document.getElementById('formTokenAmount').value = pos.entry_amount_a || '';
+            document.getElementById('formTokenPrice').value = pos.entry_price_a || (pos.current_price_a || '');
+            document.getElementById('formNotes').value = pos.notes || '';
+        }
+
+        document.getElementById('boostPosModal').classList.remove('hidden');
+        recalculateModalMath();
+    }
+
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeAddModal();
+        if (e.key === 'Escape') {
+            closeBoostModal();
+        }
     });
+
+    function setPosType(type) {
+        document.getElementById('formPosType').value = type;
+        const btnLending = document.getElementById('tabLending');
+        const btnBorrow = document.getElementById('tabBorrow');
+        const btnLp = document.getElementById('tabLp');
+        const simpleSec = document.getElementById('simpleAmountSection');
+        const lpSec = document.getElementById('lpFieldsSection');
+        const previewLp = document.getElementById('previewLpDetails');
+
+        // Reset tab classes
+        [btnLending, btnBorrow, btnLp].forEach(b => {
+            b.className = 'py-1.5 rounded-md transition-all cursor-pointer text-gray-400 hover:text-white';
+        });
+
+        if (type === 'lending') {
+            btnLending.className = 'py-1.5 rounded-md transition-all cursor-pointer bg-emerald-600/25 text-emerald-300 border border-emerald-500/40';
+            simpleSec.classList.remove('hidden');
+            lpSec.classList.add('hidden');
+            previewLp.classList.add('hidden');
+            document.getElementById('amountLabel').innerText = 'Капитал Депозита ($ USD)';
+            document.getElementById('previewYieldOrDebtLabel').innerText = 'Ожидаемый доход (Supply):';
+        } else if (type === 'borrow') {
+            btnBorrow.className = 'py-1.5 rounded-md transition-all cursor-pointer bg-rose-600/25 text-rose-300 border border-rose-500/40';
+            simpleSec.classList.remove('hidden');
+            lpSec.classList.add('hidden');
+            previewLp.classList.add('hidden');
+            document.getElementById('amountLabel').innerText = 'Тело займа ($ USD)';
+            document.getElementById('previewYieldOrDebtLabel').innerText = 'Накопленный долг (Borrow):';
+        } else if (type === 'liquidity_pool') {
+            btnLp.className = 'py-1.5 rounded-md transition-all cursor-pointer bg-purple-600/25 text-purple-300 border border-purple-500/40';
+            simpleSec.classList.add('hidden');
+            lpSec.classList.remove('hidden');
+            previewLp.classList.remove('hidden');
+            document.getElementById('previewYieldOrDebtLabel').innerText = 'Заработанные комиссии:';
+        }
+
+        recalculateModalMath();
+    }
+
+    function toggleTokenC() {
+        const row = document.getElementById('tokenCRow');
+        const btn = document.getElementById('tokenCToggleBtn');
+        if (row.classList.contains('hidden')) {
+            row.classList.remove('hidden');
+            btn.innerText = '− Убрать 3-й токен';
+        } else {
+            row.classList.add('hidden');
+            btn.innerText = '+ Добавить 3-й токен (TriCrypto/3pool)';
+            document.getElementById('lpTokenC').value = '';
+            document.getElementById('lpAmountC').value = '';
+            document.getElementById('lpPriceC').value = '';
+            document.getElementById('lpCurAmountC').value = '';
+            document.getElementById('lpCurPriceC').value = '';
+        }
+        recalculateModalMath();
+    }
+
+    function setQuickDate(daysAgo) {
+        const d = new Date();
+        d.setDate(d.getDate() - daysAgo);
+        document.getElementById('formEntryDate').value = d.toISOString().split('T')[0];
+        recalculateModalMath();
+    }
+
+    // ──────────────────────────────────────────────
+    //  AUTOCOMPLETE SYSTEM: CHAIN, PROTOCOL, ASSETS
+    // ──────────────────────────────────────────────
+
+    function showChainDropdown(query = '') {
+        const dd = document.getElementById('chainDropdown');
+        const q = query.toLowerCase().trim();
+        const filtered = allChains.filter(c => !q || c.toLowerCase().includes(q));
+
+        if (!filtered.length) {
+            dd.innerHTML = `<div class="p-2 text-[11px] text-gray-500">Сеть не найдена. Нажмите Enter, чтобы сохранить как новую.</div>`;
+        } else {
+            dd.innerHTML = filtered.map(c => `
+                <div onclick="selectChain('${c}')" class="px-2.5 py-1.5 hover:bg-emerald-500/15 hover:text-white cursor-pointer text-gray-300 text-[11px] flex items-center justify-between">
+                    <span>${c}</span>
+                    <span class="text-[9px] text-gray-500 font-mono">EVM/L1</span>
+                </div>
+            `).join('');
+        }
+        dd.classList.remove('hidden');
+    }
+
+    function onChainInput(val) {
+        showChainDropdown(val);
+        recalculateModalMath();
+    }
+
+    function selectChain(chain) {
+        document.getElementById('formChainInput').value = chain;
+        document.getElementById('chainDropdown').classList.add('hidden');
+        // Search pools for this chain
+        triggerPoolSearch();
+    }
+
+    function showProtocolDropdown(query = '') {
+        const dd = document.getElementById('protocolDropdown');
+        const q = query.toLowerCase().trim();
+        const filtered = allProtocols.filter(p => !q || p.toLowerCase().includes(q));
+
+        if (!filtered.length) {
+            dd.innerHTML = `<div class="p-2 text-[11px] text-gray-500">Протокол не найден. Можно ввести вручную.</div>`;
+        } else {
+            dd.innerHTML = filtered.map(p => `
+                <div onclick="selectProtocol('${p}')" class="px-2.5 py-1.5 hover:bg-emerald-500/15 hover:text-white cursor-pointer text-gray-300 text-[11px] flex items-center justify-between">
+                    <span class="capitalize">${p}</span>
+                    <span class="text-[9px] text-emerald-400 font-mono">Tier-1</span>
+                </div>
+            `).join('');
+        }
+        dd.classList.remove('hidden');
+    }
+
+    function onProtocolInput(val) {
+        showProtocolDropdown(val);
+        recalculateModalMath();
+    }
+
+    function selectProtocol(proto) {
+        document.getElementById('formProtocolInput').value = proto;
+        document.getElementById('protocolDropdown').classList.add('hidden');
+        triggerPoolSearch();
+    }
+
+    let assetSearchDebounce = null;
+    function showAssetDropdown(query = '') {
+        const dd = document.getElementById('assetDropdown');
+        dd.classList.remove('hidden');
+        dd.innerHTML = `<div class="p-2 text-[11px] text-gray-500"><i data-lucide="loader-2" class="w-3 h-3 animate-spin inline mr-1"></i>Поиск пулов и ставок...</div>`;
+        lucide.createIcons();
+
+        clearTimeout(assetSearchDebounce);
+        assetSearchDebounce = setTimeout(async () => {
+            const chain = document.getElementById('formChainInput').value;
+            const protocol = document.getElementById('formProtocolInput').value;
+            try {
+                const res = await fetch(`/api/portfolio/search-pools?q=${encodeURIComponent(query)}&chain=${encodeURIComponent(chain)}&protocol=${encodeURIComponent(protocol)}&limit=15`);
+                const pools = await res.json();
+                if (!pools.length) {
+                    dd.innerHTML = `<div class="p-2 text-[11px] text-gray-500">Пулов не найдено. Нажмите Enter для сохранения своего названия.</div>`;
+                } else {
+                    dd.innerHTML = pools.map(p => `
+                        <div onclick="selectPool(${JSON.stringify(p).replace(/"/g, '&quot;')})" class="px-2.5 py-1.5 hover:bg-teal-500/15 cursor-pointer text-gray-200 text-[11px] flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-mono font-bold text-white">${p.symbol}</span>
+                                <span class="text-[10px] text-gray-400">${p.project} (${p.chain})</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-mono font-bold text-emerald-400">${p.apy}%</span>
+                                <div class="text-[9px] text-gray-500 font-mono">$${Number(p.tvl_usd || 0).toLocaleString('en-US', {maximumFractionDigits:0})}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {
+                dd.innerHTML = `<div class="p-2 text-[11px] text-rose-400">Ошибка загрузки подсказок</div>`;
+            }
+        }, 150);
+    }
+
+    function onAssetInput(val) {
+        showAssetDropdown(val);
+        recalculateModalMath();
+    }
+
+    function triggerPoolSearch() {
+        const assetVal = document.getElementById('formAssetInput').value;
+        if (assetVal) showAssetDropdown(assetVal);
+    }
+
+    function selectPool(pool) {
+        document.getElementById('formAssetInput').value = pool.symbol;
+        document.getElementById('formChainInput').value = pool.chain;
+        document.getElementById('formProtocolInput').value = pool.project;
+        document.getElementById('formApy').value = pool.apy;
+        document.getElementById('formPoolId').value = pool.pool_id;
+        document.getElementById('assetDropdown').classList.add('hidden');
+
+        // If symbol contains pair delimiter and user is on default lending tab, suggest LP tab
+        if ((pool.symbol.includes('-') || pool.symbol.includes('/')) && document.getElementById('formPosType').value === 'lending') {
+            setPosType('liquidity_pool');
+            const parts = pool.symbol.split(/[-/]/);
+            if (parts.length >= 2) {
+                document.getElementById('lpTokenA').value = parts[0].trim();
+                document.getElementById('lpTokenB').value = parts[1].trim();
+            }
+        }
+        recalculateModalMath();
+    }
+
+    // ──────────────────────────────────────────────
+    //  LIVE MATH PREVIEW & CALCULATOR
+    // ──────────────────────────────────────────────
+
+    function recalculateModalMath() {
+        const type = document.getElementById('formPosType').value;
+        const apy = parseFloat(document.getElementById('formApy').value) || 0.0;
+        const entryDateVal = document.getElementById('formEntryDate').value;
+        
+        let daysHeld = 0;
+        if (entryDateVal) {
+            const entryD = new Date(entryDateVal);
+            const now = new Date();
+            daysHeld = Math.max(0, Math.floor((now - entryD) / (1000 * 60 * 60 * 24)));
+        }
+
+        if (type === 'lending') {
+            const amount = parseFloat(document.getElementById('formAmount').value) || 0.0;
+            const earnedYield = amount * (apy / 100.0) * (daysHeld / 365.0);
+            document.getElementById('previewEntryVal').innerText = '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('previewYieldOrDebtVal').innerText = '+$' + earnedYield.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ` (${daysHeld} дн.)`;
+            document.getElementById('previewNetPnlVal').className = 'text-emerald-400';
+            const pct = amount > 0 ? (earnedYield / amount * 100).toFixed(2) : '0.00';
+            document.getElementById('previewNetPnlVal').innerText = `+$${earnedYield.toFixed(2)} (+${pct}%)`;
+
+        } else if (type === 'borrow') {
+            const amount = parseFloat(document.getElementById('formAmount').value) || 0.0;
+            const accruedDebt = amount * (apy / 100.0) * (daysHeld / 365.0);
+            document.getElementById('previewEntryVal').innerText = '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('previewYieldOrDebtVal').innerText = '-$' + accruedDebt.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ` (${daysHeld} дн.)`;
+            document.getElementById('previewNetPnlVal').className = 'text-rose-400';
+            const pct = amount > 0 ? (accruedDebt / amount * 100).toFixed(2) : '0.00';
+            document.getElementById('previewNetPnlVal').innerText = `-$${accruedDebt.toFixed(2)} (-${pct}%)`;
+
+        } else if (type === 'liquidity_pool') {
+            const amtA = parseFloat(document.getElementById('lpAmountA').value) || 0.0;
+            const prcA = parseFloat(document.getElementById('lpPriceA').value) || 0.0;
+            const amtB = parseFloat(document.getElementById('lpAmountB').value) || 0.0;
+            const prcB = parseFloat(document.getElementById('lpPriceB').value) || 0.0;
+
+            const curAmtA = parseFloat(document.getElementById('lpCurAmountA').value) || amtA;
+            const curPrcA = parseFloat(document.getElementById('lpCurPriceA').value) || prcA;
+            const curAmtB = parseFloat(document.getElementById('lpCurAmountB').value) || amtB;
+            const curPrcB = parseFloat(document.getElementById('lpCurPriceB').value) || prcB;
+
+            const amtC = parseFloat(document.getElementById('lpAmountC').value) || 0.0;
+            const prcC = parseFloat(document.getElementById('lpPriceC').value) || 0.0;
+            const curAmtC = parseFloat(document.getElementById('lpCurAmountC').value) || amtC;
+            const curPrcC = parseFloat(document.getElementById('lpCurPriceC').value) || prcC;
+
+            const initialVal = (amtA * prcA) + (amtB * prcB) + (amtC * prcC);
+            const currentVal = (curAmtA * curPrcA) + (curAmtB * curPrcB) + (curAmtC * curPrcC);
+            const hodlVal = (amtA * curPrcA) + (amtB * curPrcB) + (amtC * curPrcC);
+            const il = Math.max(0, hodlVal - currentVal);
+
+            let fees = parseFloat(document.getElementById('lpFeeEarnings').value) || 0.0;
+            if (fees <= 0 && daysHeld > 0 && apy > 0 && initialVal > 0) {
+                fees = initialVal * (apy / 100.0) * (daysHeld / 365.0);
+            }
+
+            const netPnl = (currentVal + fees) - initialVal;
+            const netPct = initialVal > 0 ? (netPnl / initialVal * 100).toFixed(2) : '0.00';
+
+            document.getElementById('previewEntryVal').innerText = '$' + initialVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('previewYieldOrDebtVal').innerText = '+$' + fees.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('previewCurrentLpVal').innerText = '$' + currentVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('previewHodlVal').innerText = '$' + hodlVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('previewIlVal').innerText = '-$' + il.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const pnlElem = document.getElementById('previewNetPnlVal');
+            if (netPnl >= 0) {
+                pnlElem.className = 'text-emerald-400';
+                pnlElem.innerText = `+$${netPnl.toFixed(2)} (+${netPct}%)`;
+            } else {
+                pnlElem.className = 'text-rose-400';
+                pnlElem.innerText = `-$${Math.abs(netPnl).toFixed(2)} (${netPct}%)`;
+            }
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    //  FORM SUBMISSION & CRUD
+    // ──────────────────────────────────────────────
 
     async function submitPositionForm(e) {
         e.preventDefault();
         const saveBtn = document.getElementById('savePosBtn');
+        const origBtnText = saveBtn.innerHTML;
         saveBtn.innerText = 'Сохранение...';
         saveBtn.disabled = true;
 
+        const type = document.getElementById('formPosType').value;
         const payload = {
-            asset: document.getElementById('formAsset').value,
-            protocol: document.getElementById('formProtocol').value,
-            chain: document.getElementById('formChain').value,
-            amount_usd: parseFloat(document.getElementById('formAmount').value),
-            current_apy: parseFloat(document.getElementById('formApy').value),
-            notes: document.getElementById('formNotes').value
+            position_type: type,
+            chain: document.getElementById('formChainInput').value,
+            protocol: document.getElementById('formProtocolInput').value,
+            asset: document.getElementById('formAssetInput').value,
+            current_apy: parseFloat(document.getElementById('formApy').value) || 0.0,
+            entry_date: document.getElementById('formEntryDate').value,
+            pool_id: document.getElementById('formPoolId').value || null,
+            notes: type === 'liquidity_pool' ? document.getElementById('lpNotes').value : document.getElementById('formNotes').value
         };
 
+        if (type === 'liquidity_pool') {
+            payload.entry_amount_a = parseFloat(document.getElementById('lpAmountA').value) || 0.0;
+            payload.entry_price_a = parseFloat(document.getElementById('lpPriceA').value) || 0.0;
+            payload.entry_amount_b = parseFloat(document.getElementById('lpAmountB').value) || 0.0;
+            payload.entry_price_b = parseFloat(document.getElementById('lpPriceB').value) || 0.0;
+
+            payload.current_amount_a = parseFloat(document.getElementById('lpCurAmountA').value) || payload.entry_amount_a;
+            payload.current_price_a = parseFloat(document.getElementById('lpCurPriceA').value) || payload.entry_price_a;
+            payload.current_amount_b = parseFloat(document.getElementById('lpCurAmountB').value) || payload.entry_amount_b;
+            payload.current_price_b = parseFloat(document.getElementById('lpCurPriceB').value) || payload.entry_price_b;
+
+            payload.entry_amount_c = parseFloat(document.getElementById('lpAmountC').value) || 0.0;
+            payload.entry_price_c = parseFloat(document.getElementById('lpPriceC').value) || 0.0;
+            payload.current_amount_c = parseFloat(document.getElementById('lpCurAmountC').value) || 0.0;
+            payload.current_price_c = parseFloat(document.getElementById('lpCurPriceC').value) || 0.0;
+            payload.asset_c = document.getElementById('lpTokenC').value || null;
+
+            payload.fee_earnings_usd = parseFloat(document.getElementById('lpFeeEarnings').value) || 0.0;
+            payload.amount_usd = (payload.current_amount_a * payload.current_price_a) + (payload.current_amount_b * payload.current_price_b) + (payload.current_amount_c * payload.current_price_c);
+        } else {
+            payload.amount_usd = parseFloat(document.getElementById('formAmount').value) || 0.0;
+            payload.entry_amount_a = parseFloat(document.getElementById('formTokenAmount').value) || 0.0;
+            payload.entry_price_a = parseFloat(document.getElementById('formTokenPrice').value) || 0.0;
+            if (payload.amount_usd <= 0 && payload.entry_amount_a > 0 && payload.entry_price_a > 0) {
+                payload.amount_usd = payload.entry_amount_a * payload.entry_price_a;
+            }
+        }
+
+        const editId = document.getElementById('formEditPosId').value;
+        const url = editId ? `/api/portfolio/position/${editId}` : '/api/portfolio/position';
+        const method = editId ? 'PUT' : 'POST';
+
         try {
-            const res = await fetch('/api/portfolio/position', {
-                method: 'POST',
+            const res = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
             if (data.status === 'success') {
                 updateUI(data.summary, data.positions);
-                // Save mirror to localStorage
                 localStorage.setItem('user_portfolio_cache', JSON.stringify(data.positions));
-                closeAddModal();
-                document.getElementById('positionForm').reset();
+                closeBoostModal();
+            } else {
+                alert(data.message || 'Ошибка сохранения');
             }
         } catch(err) {
             console.error('Failed to save position:', err);
             alert('Ошибка при сохранении позиции');
         } finally {
-            saveBtn.innerText = 'Сохранить';
+            saveBtn.innerHTML = origBtnText;
             saveBtn.disabled = false;
         }
     }
@@ -366,9 +1102,7 @@
     async function deletePosition(posId) {
         if (!confirm('Удалить эту позицию из портфеля?')) return;
         try {
-            const res = await fetch(`/api/portfolio/position/${posId}`, {
-                method: 'DELETE'
-            });
+            const res = await fetch(`/api/portfolio/position/${posId}`, { method: 'DELETE' });
             const data = await res.json();
             if (data.status === 'success') {
                 updateUI(data.summary, data.positions);
@@ -379,71 +1113,294 @@
         }
     }
 
+    // ──────────────────────────────────────────────
+    //  WEB3 WALLET SCANNER & POSITION IMPORTER
+    // ──────────────────────────────────────────────
+
+    function toggleWalletScanner(forceOpen = false) {
+        const card = document.getElementById('walletScannerCard');
+        if (forceOpen || card.classList.contains('hidden')) {
+            card.classList.remove('hidden');
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            card.classList.add('hidden');
+        }
+    }
+
+    function toggleAllChains(checkAll = true) {
+        const boxes = document.querySelectorAll('input[name="scan_chain"]');
+        boxes.forEach(b => b.checked = checkAll);
+    }
+
+    async function scanWalletAddress() {
+        const addr = document.getElementById('walletAddressInput').value.trim();
+        if (!addr) {
+            alert('Пожалуйста, введите публичный адрес кошелька');
+            return;
+        }
+
+        const checkedChains = Array.from(document.querySelectorAll('input[name="scan_chain"]:checked')).map(c => c.value);
+        const btn = document.getElementById('scanAddressBtn');
+        const origText = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Сканирование...</span>`;
+        btn.disabled = true;
+        lucide.createIcons();
+
+        try {
+            const res = await fetch('/api/portfolio/wallet-scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: addr, chains: checkedChains })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                scannedPositionsCache = data.positions;
+                renderScannedPositions(data);
+            } else {
+                alert(data.message || 'Ошибка при сканировании адреса');
+            }
+        } catch(err) {
+            console.error('Wallet scan error:', err);
+            alert('Не удалось подключиться к сканеру ончейна');
+        } finally {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    }
+
+    function renderScannedPositions(data) {
+        const area = document.getElementById('scanResultsArea');
+        const msg = document.getElementById('scanStatusMsg');
+        const list = document.getElementById('scannedCardsList');
+
+        area.classList.remove('hidden');
+        msg.innerText = `${data.message} | Общий PnL: +$${data.net_pnl_usd.toLocaleString('en-US')}`;
+
+        list.innerHTML = data.positions.map((p, idx) => {
+            const isLp = p.position_type === 'liquidity_pool';
+            const isBorrow = p.position_type === 'borrow';
+            const badgeClass = isBorrow ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : (isLp ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30');
+            const typeText = isBorrow ? 'BORROW' : (isLp ? 'LP v3' : 'SUPPLY');
+
+            return `
+            <div class="p-3 rounded-lg bg-[#07090e] border border-white/[0.08] relative hover:border-sky-500/40 transition-all space-y-1.5">
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded border ${badgeClass}">${typeText}</span>
+                    <span class="text-[10px] text-gray-400 font-mono">${p.chain}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-white capitalize">${p.protocol}</span>
+                    <span class="text-[11px] font-mono font-semibold text-teal-300">${p.asset}</span>
+                </div>
+                <div class="text-[10px] text-gray-400 flex items-center justify-between pt-1 border-t border-white/[0.04]">
+                    <span>Дата открытия:</span>
+                    <span class="font-mono text-gray-300">${p.entry_date}</span>
+                </div>
+                ${isLp ? `
+                <div class="p-1.5 rounded bg-white/[0.02] border border-white/[0.04] space-y-0.5 text-[9px] font-mono">
+                    <div class="text-gray-400"><span class="text-gray-500">Вход:</span> ${p.entry_amount_a} ($${p.entry_price_a}) + ${p.entry_amount_b} ($${p.entry_price_b})</div>
+                    <div class="text-teal-300"><span class="text-gray-500">Сейчас:</span> ${p.current_amount_a} ($${p.current_price_a}) + ${p.current_amount_b} ($${p.current_price_b})</div>
+                </div>
+                ` : `
+                <div class="text-[10px] text-gray-400 flex items-center justify-between">
+                    <span>Начальный депозит:</span>
+                    <span class="font-mono text-gray-300">${p.entry_amount_a} ${p.asset} ($${Number(p.entry_amount_a * (p.entry_price_a || 1.0)).toLocaleString('en-US')})</span>
+                </div>
+                `}
+                <div class="text-[10px] text-gray-400 flex items-center justify-between">
+                    <span>Текущая ст-ть:</span>
+                    <span class="font-mono font-bold text-white">$${Number(p.amount_usd).toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                </div>
+                <div class="text-[10px] text-gray-400 flex items-center justify-between">
+                    <span>${isBorrow ? 'Долг:' : (isLp ? 'Комиссии:' : 'Доход:')}</span>
+                    <span class="font-mono font-semibold ${isBorrow ? 'text-rose-400' : 'text-teal-300'}">
+                        ${isBorrow ? '-' : '+'}$${Number(isBorrow ? p.borrow_debt_usd : (isLp ? p.fee_earnings_usd : p.earned_yield_usd)).toFixed(2)}
+                        ${!isLp && (p.borrow_debt_tokens || p.earned_yield_tokens) ? `<span class="text-[9px] font-normal">(${isBorrow ? '-' : '+'}${Number(isBorrow ? p.borrow_debt_tokens : p.earned_yield_tokens).toFixed(3)} ${p.asset})</span>` : ''}
+                    </span>
+                </div>
+                ${isLp && p.impermanent_loss_usd ? `
+                <div class="text-[10px] text-gray-400 flex items-center justify-between">
+                    <span>IL (Непост. потери):</span>
+                    <span class="font-mono text-rose-400">-$${Number(p.impermanent_loss_usd).toFixed(2)}</span>
+                </div>
+                ` : ''}
+                <div class="text-[10px] text-gray-400 flex items-center justify-between pt-1 border-t border-white/[0.04]">
+                    <span class="font-semibold text-gray-300">Net PnL:</span>
+                    <span class="font-mono font-bold ${p.net_pnl_usd >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                        ${p.net_pnl_usd >= 0 ? '+' : ''}$${Number(p.net_pnl_usd).toFixed(2)} (${p.net_pnl_pct}%)
+                    </span>
+                </div>
+            </div>
+            `;
+        }).join('');
+        lucide.createIcons();
+    }
+
+    async function importScannedPositions() {
+        if (!scannedPositionsCache.length) return;
+        const btn = document.getElementById('importScannedBtn');
+        btn.innerText = 'Импортирование...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/portfolio/wallet-import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ positions: scannedPositionsCache })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                updateUI(data.summary, data.positions);
+                localStorage.setItem('user_portfolio_cache', JSON.stringify(data.positions));
+                alert(`Успешно импортировано ${data.imported_count} позиций в ваш портфель!`);
+                toggleWalletScanner();
+            }
+        } catch(err) {
+            console.error('Failed to import scanned positions:', err);
+            alert('Ошибка при импорте позиций');
+        } finally {
+            btn.innerHTML = `<i data-lucide="download" class="w-3.5 h-3.5"></i><span>Импортировать все в мой портфель</span>`;
+            btn.disabled = false;
+            lucide.createIcons();
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    //  TABLE FILTERING & UI RE-RENDER
+    // ──────────────────────────────────────────────
+
+    function filterPositionsTable(type) {
+        document.querySelectorAll('.filter-tab').forEach(t => {
+            if (t.dataset.filter === type) {
+                t.className = 'px-2 py-0.5 rounded bg-white/[0.08] text-white font-medium filter-tab active cursor-pointer';
+            } else {
+                t.className = 'px-2 py-0.5 rounded bg-white/[0.03] text-gray-400 hover:text-white filter-tab cursor-pointer';
+            }
+        });
+
+        const rows = document.querySelectorAll('.pos-row');
+        rows.forEach(r => {
+            const rType = r.dataset.type;
+            if (type === 'all' || rType === type || (type === 'liquidity_pool' && rType === 'lp')) {
+                r.style.display = '';
+            } else {
+                r.style.display = 'none';
+            }
+        });
+    }
+
     function updateUI(summary, positions) {
+        currentPositions = positions;
         // KPI update
         document.getElementById('kpiTotalCapital').innerText = '$' + Number(summary.total_capital || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('kpiNetCapital').innerText = '$' + Number(summary.net_capital_usd !== undefined ? summary.net_capital_usd : summary.total_capital).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('kpiWeightedApy').innerText = Number(summary.weighted_apy || 0).toFixed(2) + '%';
-        document.getElementById('kpiMonthlyIncome').innerText = '+$' + Number(summary.monthly_income || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        document.getElementById('kpiAnnualIncome').innerText = '+$' + Number(summary.annual_income || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('kpiMonthlyIncome').innerHTML = '+$' + Number(summary.monthly_income || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '<span class="text-[10px] text-gray-400 font-sans font-normal"> /мес</span>';
+        document.getElementById('kpiAnnualIncome').innerText = '+$' + Number(summary.annual_income || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' /год';
         document.getElementById('kpiPositionsCount').innerText = `${positions.length} активных позиций`;
-        document.getElementById('tableHeaderCount').innerText = `Всего позиций: ${positions.length}`;
+        document.getElementById('tableHeaderCount').innerText = positions.length;
+
+        const pnlElem = document.getElementById('kpiTotalPnl');
+        const pnlVal = summary.total_net_pnl || 0.0;
+        pnlElem.innerText = (pnlVal >= 0 ? '+' : '') + '$' + Number(pnlVal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        pnlElem.className = pnlVal >= 0 ? 'text-xl font-bold font-mono text-emerald-300 mt-1' : 'text-xl font-bold font-mono text-rose-300 mt-1';
+        document.getElementById('kpiTotalYield').innerText = '+$' + Number(summary.total_yield_earned || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         // Table update
         const tbody = document.getElementById('positionsTableBody');
         if (!positions.length) {
             tbody.innerHTML = `
                 <tr id="emptyRow">
-                    <td colspan="8" class="text-center py-10 text-gray-500">
+                    <td colspan="11" class="text-center py-10 text-gray-500">
                         <i data-lucide="inbox" class="w-8 h-8 mx-auto text-gray-600 mb-2"></i>
                         <div class="text-xs text-gray-400 font-medium">Нет добавленных позиций</div>
                         <div class="text-[11px] text-gray-500 mt-1">
-                            Нажмите «Добавить позицию», чтобы зафиксировать ваш капитал и получать точные рекомендации AI.
+                            Нажмите «🚀 Boost / Добавить позицию» или отсканируйте публичный адрес кошелька выше.
                         </div>
                     </td>
                 </tr>
             `;
         } else {
             tbody.innerHTML = positions.map(p => {
-                const monthly = ((p.amount_usd * p.current_apy / 100.0) / 12.0);
+                const isBorrow = p.position_type === 'borrow';
+                const isLp = p.position_type === 'liquidity_pool' || p.position_type === 'lp';
+                const badge = isBorrow ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500/15 text-rose-300 border border-rose-500/25">BORROW</span>' : (isLp ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/15 text-purple-300 border border-purple-500/25">LP v3</span>' : '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25">SUPPLY</span>');
+                const pnlClass = (p.net_pnl_usd || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                const pnlSign = (p.net_pnl_usd || 0) >= 0 ? '+' : '';
+
                 return `
-                <tr id="pos-row-${p.id}" class="hover:bg-white/[0.02] transition-colors">
+                <tr id="pos-row-${p.id}" class="hover:bg-white/[0.02] transition-colors pos-row" data-type="${p.position_type || 'lending'}">
+                    <td class="py-2 px-3">${badge}</td>
                     <td class="py-2 px-3">
                         <div class="flex items-center space-x-2">
                             <div class="w-5 h-5 rounded bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center font-bold text-[9px] text-emerald-400">
                                 ${(p.protocol || '').substring(0, 2).toUpperCase()}
                             </div>
-                            <span class="font-semibold text-white capitalize">${p.protocol}</span>
+                            <div>
+                                <div class="font-semibold text-white capitalize leading-tight">${p.protocol}</div>
+                                <div class="text-[10px] text-gray-400">${p.chain}</div>
+                            </div>
                         </div>
                     </td>
-                    <td class="py-2 px-2.5">
-                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-white/[0.04] text-gray-300 border border-white/[0.06]">
-                            ${p.chain}
-                        </span>
+                    <td class="py-2 px-3">
+                        <div>
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                                ${p.asset}
+                            </span>
+                        </div>
+                        ${isLp && p.entry_amount_a ? `
+                        <div class="mt-1 text-[9px] font-mono text-gray-400 space-y-0.5 max-w-[200px]">
+                            <div title="Количество и цена токенов на входе">
+                                <span class="text-gray-500">Вход:</span> ${Number(p.entry_amount_a).toLocaleString('en-US', {maximumFractionDigits: 3})} ($${Number(p.entry_price_a || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}) + ${Number(p.entry_amount_b || 0).toLocaleString('en-US', {maximumFractionDigits: 1})} ($${Number(p.entry_price_b || 0).toLocaleString('en-US', {maximumFractionDigits: 2})})
+                            </div>
+                            <div title="Количество и цена токенов сейчас">
+                                <span class="text-gray-500">Сейчас:</span> <span class="text-teal-300">${Number(p.current_amount_a || p.entry_amount_a).toLocaleString('en-US', {maximumFractionDigits: 3})}</span> ($${Number(p.current_price_a || p.entry_price_a || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}) + <span class="text-teal-300">${Number(p.current_amount_b || p.entry_amount_b || 0).toLocaleString('en-US', {maximumFractionDigits: 1})}</span> ($${Number(p.current_price_b || p.entry_price_b || 0).toLocaleString('en-US', {maximumFractionDigits: 2})})
+                            </div>
+                        </div>
+                        ` : ''}
                     </td>
-                    <td class="py-2 px-2.5">
-                        <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                            ${p.asset}
-                        </span>
+                    <td class="py-2 px-3 font-mono text-[11px] text-gray-400">
+                        ${p.entry_date || (p.created_at || '').substring(0, 10) || '—'}
+                    </td>
+                    <td class="py-2 px-3 text-right font-mono text-gray-300">
+                        $${Number(p.initial_value_usd || p.amount_usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td class="py-2 px-3 text-right font-mono font-bold text-white">
-                        $${Number(p.amount_usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        $${Number(p.current_value_usd || p.amount_usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td class="py-2 px-3 text-right font-mono font-bold text-emerald-400">
                         ${p.current_apy}%
                     </td>
-                    <td class="py-2 px-3 text-right font-mono text-teal-300">
-                        +$${Number(monthly).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <td class="py-2 px-3 text-right font-mono">
+                        ${isBorrow ? `
+                            <span class="text-rose-400">-$${Number(p.borrow_debt_usd || 0).toFixed(2)}</span>
+                            ${p.borrow_debt_tokens ? `<div class="text-[9px] text-rose-400/80 font-mono">(-${Number(p.borrow_debt_tokens).toFixed(3)} ${p.asset})</div>` : ''}
+                        ` : `
+                            <span class="text-teal-300">+$${Number(p.earned_yield_usd || 0).toFixed(2)}</span>
+                            ${p.earned_yield_tokens ? `<div class="text-[9px] text-teal-400/80 font-mono">(+${Number(p.earned_yield_tokens).toFixed(3)} ${p.asset})</div>` : ''}
+                        `}
                     </td>
-                    <td class="py-2 px-3 text-gray-400 text-[11px] truncate max-w-[150px]">
-                        ${p.notes || '—'}
+                    <td class="py-2 px-3 text-right font-mono text-[11px]">
+                        ${isLp ? `
+                            <div class="text-teal-300">+$${Number(p.fee_earnings_usd || 0).toFixed(2)}</div>
+                            ${p.impermanent_loss_usd ? `<div class="text-[9px] text-rose-400">IL: -$${Number(p.impermanent_loss_usd).toFixed(2)}</div>` : ''}
+                        ` : '<span class="text-gray-500">—</span>'}
+                    </td>
+                    <td class="py-2 px-3 text-right font-mono font-bold">
+                        <span class="${pnlClass}">${pnlSign}$${Number(p.net_pnl_usd || 0).toFixed(2)}</span>
+                        <div class="text-[9px] font-normal ${pnlClass}">(${pnlSign}${p.net_pnl_pct || 0}%)</div>
                     </td>
                     <td class="py-2 px-3 text-center">
-                        <div class="flex items-center justify-center space-x-2">
-                            <a href="/advisor?asset=${p.asset}&protocol=${p.protocol}&chain=${p.chain}&apy=${p.current_apy}&amount=${p.amount_usd}" class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/25 transition-all inline-flex items-center space-x-1" title="Оценить ребаланс этой позиции">
+                        <div class="flex items-center justify-center space-x-1.5">
+                            <button onclick="editPosition(${p.id})" class="text-gray-400 hover:text-emerald-300 p-1 transition-colors cursor-pointer" title="Редактировать позицию">
+                                <i data-lucide="edit-3" class="w-3 h-3"></i>
+                            </button>
+                            <a href="/advisor?asset=${p.asset}&protocol=${p.protocol}&chain=${p.chain}&apy=${p.current_apy}&amount=${p.amount_usd}" class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/25 transition-all inline-flex items-center space-x-1" title="Оценить ребаланс">
                                 <i data-lucide="sparkles" class="w-2.5 h-2.5"></i>
                                 <span>Ребаланс</span>
                             </a>
-                            <button onclick="deletePosition(${p.id})" class="text-rose-400/80 hover:text-rose-300 p-1 transition-colors cursor-pointer" title="Удалить позицию">
+                            <button onclick="deletePosition(${p.id})" class="text-rose-400/80 hover:text-rose-300 p-1 transition-colors cursor-pointer" title="Удалить">
                                 <i data-lucide="trash-2" class="w-3 h-3"></i>
                             </button>
                         </div>
@@ -481,7 +1438,6 @@
         }
     }
 
-    // Keep localStorage in sync
     async function syncPortfolioWithLocalStorage() {
         try {
             const res = await fetch('/api/portfolio');
@@ -495,8 +1451,8 @@
             const cached = localStorage.getItem('user_portfolio_cache');
             if (cached) {
                 const positions = JSON.parse(cached);
-                const total = positions.reduce((acc, p) => acc + p.amount_usd, 0);
-                const wApy = total > 0 ? positions.reduce((acc, p) => acc + p.amount_usd * p.current_apy, 0) / total : 0;
+                const total = positions.reduce((acc, p) => acc + (p.amount_usd || 0), 0);
+                const wApy = total > 0 ? positions.reduce((acc, p) => acc + (p.amount_usd || 0) * (p.current_apy || 0), 0) / total : 0;
                 updateUI({
                     total_capital: total,
                     weighted_apy: wApy,
@@ -524,7 +1480,6 @@
         }
     }
 
-    // Refresh portfolio metrics on global data refresh
     window.onDashboardDataUpdated = async function() {
         await syncPortfolioWithLocalStorage();
     };

@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 
 from defi_engine import search_pools, fetch_pools, fmt_tvl, fmt_project, load_config
 from ai_handler import parse_query, format_results, answer_question, generate_rebalance_advice
+from data.database import get_user_portfolio, get_portfolio_summary
 from data.snapshot_worker import fetch_and_store_snapshots
 from data.rollup_worker import run_rollup_job
 from data.metrics_engine import get_enriched_pools, get_market_overview
@@ -69,8 +70,12 @@ def set_pref(chat_id, key, value):
 def main_menu_kb():
     kb = types.InlineKeyboardMarkup(row_width=2)
     kb.add(
-        types.InlineKeyboardButton("📊 Открыть Web-Дашборд", url=DASHBOARD_URL),
+        types.InlineKeyboardButton("📊 Web-Дашборд", url=DASHBOARD_URL),
+        types.InlineKeyboardButton("🚀 Boost Портфеля", callback_data="boost:menu"),
+    )
+    kb.add(
         types.InlineKeyboardButton("🤖 AI Ребалансер", callback_data="rebalance:menu"),
+        types.InlineKeyboardButton("🔍 Сканер Кошелька", url=f"{DASHBOARD_URL}/portfolio?scan=1"),
     )
     kb.add(
         types.InlineKeyboardButton("🏆 Топ-5 Real Yield", callback_data="top:real_yield"),
@@ -197,14 +202,53 @@ def cmd_rebalance(msg):
     )
     bot.send_message(msg.chat.id, advice, reply_markup=kb, parse_mode="Markdown")
 
+@bot.message_handler(commands=["boost", "portfolio"])
+def cmd_boost(msg):
+    bot.send_chat_action(msg.chat.id, "typing")
+    summary = get_portfolio_summary()
+    positions = get_user_portfolio()
+
+    lines = [
+        "🚀 <b>DeFi Boost & Управление Портфелем</b>\n",
+        f"💰 <b>Капитал в работе:</b> ${summary.get('total_capital', 0.0):,.2f}",
+        f"⚡ <b>Средневзвешенный APY:</b> {summary.get('weighted_apy', 0.0):.2f}%",
+        f"💵 <b>Пассивный доход:</b> +${summary.get('monthly_income', 0.0):,.2f}/мес (+${summary.get('annual_income', 0.0):,.2f}/год)",
+        f"📈 <b>Совокупный PnL / Доход:</b> +${summary.get('total_net_pnl', 0.0):,.2f}",
+        f"📋 <b>Активных позиций:</b> {summary.get('positions_count', 0)}\n"
+    ]
+
+    if positions:
+        lines.append("🔹 <b>Текущие позиции:</b>")
+        for p in positions[:5]:
+            ptype = (p.get("position_type") or "lending").upper()
+            apy_val = p.get("current_apy", 0.0)
+            cur_val = p.get("current_value_usd") or p.get("amount_usd", 0.0)
+            lines.append(f"• [{ptype}] <b>{p.get('asset')}</b> в <b>{p.get('protocol')}</b> ({p.get('chain')}): ${cur_val:,.0f} @ {apy_val}%")
+        if len(positions) > 5:
+            lines.append(f"<i>...и ещё {len(positions) - 5} позиций в веб-кабинете</i>")
+    else:
+        lines.append("<i>У вас пока нет добавленных позиций. Добавьте первую позицию или отсканируйте свой Web3-кошелек!</i>")
+
+    lines.append("\n💡 <i>Вы можете бустануть позицию с автозаполнением всех 25+ сетей и ставок из нашей базы:</i>")
+
+    kb = types.InlineKeyboardMarkup(row_width=1)
+    kb.add(
+        types.InlineKeyboardButton("🚀 Бустануть / Добавить позицию", url=f"{DASHBOARD_URL}/portfolio?boost=1"),
+        types.InlineKeyboardButton("🔍 Сканировать кошелек (Web3)", url=f"{DASHBOARD_URL}/portfolio?scan=1"),
+        types.InlineKeyboardButton("📊 Открыть Web-Портфель", url=f"{DASHBOARD_URL}/portfolio"),
+        types.InlineKeyboardButton("🏠 Меню", callback_data="menu"),
+    )
+    bot.send_message(msg.chat.id, "\n".join(lines), reply_markup=kb, parse_mode="HTML")
+
 @bot.message_handler(commands=["help"])
 def cmd_help(msg):
     text = (
         "💡 <b>Как пользоваться ботом:</b>\n\n"
         "1. <b>/dashboard</b> — ссылка на интерактивный веб-дашборд\n"
-        "2. <b>/top</b> — топ безопасных доходностей прямо сейчас\n"
-        "3. <b>/rebalance</b> — персональный расчет перекладки средств\n"
-        "4. <b>/settings</b> — настройки фильтров и минимального TVL\n\n"
+        "2. <b>/boost</b> (или <b>/portfolio</b>) — управление позициями, буст доходности и сканер кошелька\n"
+        "3. <b>/top</b> — топ безопасных доходностей прямо сейчас\n"
+        "4. <b>/rebalance</b> — персональный расчет перекладки средств\n"
+        "5. <b>/settings</b> — настройки фильтров и минимального TVL\n\n"
         "Или просто напиши текстом:\n"
         "• <i>'лендинги USDT на Base'</i>\n"
         "• <i>'у меня 15000 USDC в Aave, куда переложить?'</i>\n"
@@ -247,6 +291,10 @@ def handle_callback(call):
             call.message.message_id,
             reply_markup=main_menu_kb(),
         )
+
+    elif data == "boost:menu":
+        bot.answer_callback_query(call.id, "Открываю Boost портфеля...")
+        cmd_boost(call.message)
 
     elif data == "top:real_yield":
         bot.answer_callback_query(call.id, "Загружаю топ...")

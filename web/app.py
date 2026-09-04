@@ -19,8 +19,11 @@ import asyncio
 from data.database import (
     init_db, get_pool_history, get_pool_by_id,
     get_user_portfolio, add_portfolio_position,
-    update_portfolio_position, delete_portfolio_position, get_portfolio_summary
+    update_portfolio_position, delete_portfolio_position, get_portfolio_summary,
+    get_distinct_chains, get_distinct_protocols, get_distinct_assets,
+    search_pools_for_autocomplete
 )
+from data.wallet_scanner import scan_wallet_positions, SUPPORTED_EVM_CHAINS, ALL_SUPPORTED_CHAINS
 from data.metrics_engine import get_enriched_pools, get_market_overview, calculate_pool_metrics
 from data.snapshot_worker import fetch_and_store_snapshots
 from advisor.rebalance_advisor import evaluate_rebalance
@@ -186,16 +189,30 @@ async def api_pool_detail(pool_id: str):
 
 
 @app.get("/portfolio", response_class=HTMLResponse)
-async def view_portfolio(request: Request):
+async def view_portfolio(
+    request: Request,
+    boost: Optional[int] = Query(None),
+    scan: Optional[int] = Query(None)
+):
     summary = get_portfolio_summary()
     positions = get_user_portfolio()
+    chains = get_distinct_chains()
+    protocols = get_distinct_protocols()
+    assets = get_distinct_assets()
     return templates.TemplateResponse(
         request=request,
         name="portfolio.html",
         context={
             "summary": summary,
             "positions": positions,
-            "active_tab": "portfolio"
+            "chains": chains,
+            "protocols": protocols,
+            "assets": assets,
+            "evm_chains": SUPPORTED_EVM_CHAINS,
+            "all_chains": ALL_SUPPORTED_CHAINS,
+            "active_tab": "portfolio",
+            "auto_open_boost": bool(boost),
+            "auto_open_scan": bool(scan)
         }
     )
 
@@ -337,14 +354,44 @@ async def api_refresh_snapshots():
 # ──────────────────────────────────────────────
 
 class PortfolioPositionRequest(BaseModel):
+    model_config = {"extra": "ignore"}
     protocol: str
     chain: str
     asset: str
-    amount_usd: float
+    amount_usd: float = 0.0
     current_apy: float = 0.0
+    position_type: str = "lending"
+    entry_date: Optional[str] = None
+    entry_price_a: float = 0.0
+    entry_price_b: float = 0.0
+    entry_amount_a: float = 0.0
+    entry_amount_b: float = 0.0
+    current_amount_a: float = 0.0
+    current_amount_b: float = 0.0
+    current_price_a: float = 0.0
+    current_price_b: float = 0.0
+    fee_earnings_usd: float = 0.0
+    borrow_debt_usd: float = 0.0
+    impermanent_loss_usd: float = 0.0
+    net_pnl_usd: float = 0.0
+    asset_c: Optional[str] = None
+    entry_amount_c: float = 0.0
+    entry_price_c: float = 0.0
+    current_amount_c: float = 0.0
+    current_price_c: float = 0.0
     pool_id: Optional[str] = None
     notes: Optional[str] = None
     user_id: str = "default_user"
+
+
+class WalletScanRequest(BaseModel):
+    address: str
+    chains: Optional[List[str]] = None
+
+
+class WalletImportRequest(BaseModel):
+    user_id: str = "default_user"
+    positions: List[PortfolioPositionRequest]
 
 
 @app.get("/api/portfolio")
@@ -357,6 +404,27 @@ async def api_get_portfolio(user_id: str = Query("default_user")):
     }
 
 
+@app.get("/api/portfolio/options")
+async def api_portfolio_options():
+    return {
+        "chains": get_distinct_chains(),
+        "protocols": get_distinct_protocols(),
+        "assets": get_distinct_assets(),
+        "evm_chains": SUPPORTED_EVM_CHAINS
+    }
+
+
+@app.get("/api/portfolio/search-pools")
+async def api_portfolio_search_pools(
+    q: str = Query(""),
+    chain: Optional[str] = Query(None),
+    protocol: Optional[str] = Query(None),
+    limit: int = Query(30)
+):
+    pools = search_pools_for_autocomplete(q=q, chain=chain, protocol=protocol, limit=limit)
+    return pools
+
+
 @app.post("/api/portfolio/position")
 async def api_add_portfolio_position(pos: PortfolioPositionRequest):
     new_id = add_portfolio_position(
@@ -367,13 +435,73 @@ async def api_add_portfolio_position(pos: PortfolioPositionRequest):
         amount_usd=pos.amount_usd,
         current_apy=pos.current_apy,
         pool_id=pos.pool_id,
-        notes=pos.notes
+        notes=pos.notes,
+        position_type=pos.position_type,
+        entry_date=pos.entry_date,
+        entry_price_a=pos.entry_price_a,
+        entry_price_b=pos.entry_price_b,
+        entry_amount_a=pos.entry_amount_a,
+        entry_amount_b=pos.entry_amount_b,
+        current_amount_a=pos.current_amount_a,
+        current_amount_b=pos.current_amount_b,
+        current_price_a=pos.current_price_a,
+        current_price_b=pos.current_price_b,
+        fee_earnings_usd=pos.fee_earnings_usd,
+        borrow_debt_usd=pos.borrow_debt_usd,
+        impermanent_loss_usd=pos.impermanent_loss_usd,
+        net_pnl_usd=pos.net_pnl_usd,
+        asset_c=pos.asset_c,
+        entry_amount_c=pos.entry_amount_c,
+        entry_price_c=pos.entry_price_c,
+        current_amount_c=pos.current_amount_c,
+        current_price_c=pos.current_price_c
     )
     summary = get_portfolio_summary(user_id=pos.user_id)
     positions = get_user_portfolio(user_id=pos.user_id)
     return {
         "status": "success",
         "id": new_id,
+        "summary": summary,
+        "positions": positions
+    }
+
+
+@app.put("/api/portfolio/position/{pos_id}")
+async def api_update_portfolio_position(pos_id: int, pos: PortfolioPositionRequest):
+    updated = update_portfolio_position(
+        pos_id=pos_id,
+        user_id=pos.user_id,
+        protocol=pos.protocol,
+        chain=pos.chain,
+        asset=pos.asset,
+        amount_usd=pos.amount_usd,
+        current_apy=pos.current_apy,
+        notes=pos.notes,
+        position_type=pos.position_type,
+        entry_date=pos.entry_date,
+        entry_price_a=pos.entry_price_a,
+        entry_price_b=pos.entry_price_b,
+        entry_amount_a=pos.entry_amount_a,
+        entry_amount_b=pos.entry_amount_b,
+        current_amount_a=pos.current_amount_a,
+        current_amount_b=pos.current_amount_b,
+        current_price_a=pos.current_price_a,
+        current_price_b=pos.current_price_b,
+        fee_earnings_usd=pos.fee_earnings_usd,
+        borrow_debt_usd=pos.borrow_debt_usd,
+        impermanent_loss_usd=pos.impermanent_loss_usd,
+        net_pnl_usd=pos.net_pnl_usd,
+        asset_c=pos.asset_c,
+        entry_amount_c=pos.entry_amount_c,
+        entry_price_c=pos.entry_price_c,
+        current_amount_c=pos.current_amount_c,
+        current_price_c=pos.current_price_c
+    )
+    summary = get_portfolio_summary(user_id=pos.user_id)
+    positions = get_user_portfolio(user_id=pos.user_id)
+    return {
+        "status": "success" if updated else "not_found",
+        "updated": pos_id if updated else None,
         "summary": summary,
         "positions": positions
     }
@@ -387,6 +515,58 @@ async def api_delete_portfolio_position(pos_id: int, user_id: str = Query("defau
     return {
         "status": "success" if deleted else "not_found",
         "deleted": pos_id if deleted else None,
+        "summary": summary,
+        "positions": positions
+    }
+
+
+@app.post("/api/portfolio/wallet-scan")
+async def api_wallet_scan(req: WalletScanRequest):
+    result = scan_wallet_positions(address=req.address, chains=req.chains)
+    return result
+
+
+@app.post("/api/portfolio/wallet-import")
+async def api_wallet_import(req: WalletImportRequest):
+    imported_ids = []
+    for pos in req.positions:
+        new_id = add_portfolio_position(
+            user_id=req.user_id,
+            protocol=pos.protocol,
+            chain=pos.chain,
+            asset=pos.asset,
+            amount_usd=pos.amount_usd,
+            current_apy=pos.current_apy,
+            pool_id=pos.pool_id,
+            notes=pos.notes,
+            position_type=pos.position_type,
+            entry_date=pos.entry_date,
+            entry_price_a=pos.entry_price_a,
+            entry_price_b=pos.entry_price_b,
+            entry_amount_a=pos.entry_amount_a,
+            entry_amount_b=pos.entry_amount_b,
+            current_amount_a=pos.current_amount_a,
+            current_amount_b=pos.current_amount_b,
+            current_price_a=pos.current_price_a,
+            current_price_b=pos.current_price_b,
+            fee_earnings_usd=pos.fee_earnings_usd,
+            borrow_debt_usd=pos.borrow_debt_usd,
+            impermanent_loss_usd=pos.impermanent_loss_usd,
+            net_pnl_usd=pos.net_pnl_usd,
+            asset_c=pos.asset_c,
+            entry_amount_c=pos.entry_amount_c,
+            entry_price_c=pos.entry_price_c,
+            current_amount_c=pos.current_amount_c,
+            current_price_c=pos.current_price_c
+        )
+        imported_ids.append(new_id)
+
+    summary = get_portfolio_summary(user_id=req.user_id)
+    positions = get_user_portfolio(user_id=req.user_id)
+    return {
+        "status": "success",
+        "imported_count": len(imported_ids),
+        "imported_ids": imported_ids,
         "summary": summary,
         "positions": positions
     }

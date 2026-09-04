@@ -34,8 +34,8 @@ def get_client() -> Optional[genai.Client]:
 if API_KEY:
     get_client()
 
-PRIMARY_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
-FALLBACK_MODELS = ["gemini-3.6-flash", "gemini-2.5-flash"]
+PRIMARY_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+FALLBACK_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash"]
 
 # ──────────────────────────────────────────────
 #  KEYWORD FALLBACK PARSER  (works without AI)
