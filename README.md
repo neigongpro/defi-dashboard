@@ -10,7 +10,7 @@
 - **100% Free On-Chain Data:** 15-minute background ingestion across Top-10 Tier-1 protocols (*Aave v3, Morpho Blue, Compound v3, Spark, Fluid, Lido, Uniswap v3, Curve, Pendle, Aerodrome*).
 - **Zero-Maintenance SQLite Storage:** Rollup engine downsamples data older than 30 days, keeping DB footprint capped at ~50–70 MB.
 - **Advanced Metrics:** Real Yield Ratio (Base APY vs Reward APY), 30d/7d Moving Averages, APY Stability Score, and Spike Detection.
-- **AI Rebalance Advisor:** Calculates gas break-even timeframes and delivers personalized verdicts (*HOLD, STRONG_MOVE, CONSIDER*) powered by Gemini 2.5.
+- **AI Rebalance Advisor:** Calculates gas break-even timeframes and delivers personalized verdicts (*HOLD, STRONG_MOVE, CONSIDER*) powered by Gemini 3.8.
 - **Interactive UI:** Dark mode responsive dashboard with Lucide icons, Chart.js time-series graphs, and real-time filtering.
 
 ---

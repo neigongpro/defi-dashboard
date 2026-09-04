@@ -13,15 +13,29 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("GEMINI_API_KEY") or "AIzaSyAkBWfSU0nBHR2xFNwWbB8e9cAHFLSlWvU"
+API_KEY = os.getenv("GEMINI_API_KEY", "")
 client = None
-try:
-    client = genai.Client(api_key=API_KEY)
-except Exception as e:
-    print(f"[AI] Gemini Client initialization warning: {e}")
 
-PRIMARY_MODEL = "gemini-2.5-flash"
-FALLBACK_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash"]
+def get_client() -> Optional[genai.Client]:
+    """Dynamically get or initialize the Gemini client from environment."""
+    global client
+    key = os.getenv("GEMINI_API_KEY", "") or API_KEY
+    if not key:
+        return None
+    if client is None:
+        try:
+            client = genai.Client(api_key=key)
+        except Exception as e:
+            print(f"[AI] Gemini Client initialization warning: {e}")
+            return None
+    return client
+
+# Try to initialize at startup if key exists
+if API_KEY:
+    get_client()
+
+PRIMARY_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
 
 # ──────────────────────────────────────────────
 #  KEYWORD FALLBACK PARSER  (works without AI)
@@ -135,12 +149,13 @@ def _keyword_parse(text: str) -> dict:
 
 def _call_gemini(prompt: str) -> Optional[str]:
     """Invoke Gemini with automatic fallback between models."""
-    if not client:
+    cli = get_client()
+    if not cli:
         return None
     models_to_try = [PRIMARY_MODEL] + [m for m in FALLBACK_MODELS if m != PRIMARY_MODEL]
     for m in models_to_try:
         try:
-            resp = client.models.generate_content(model=m, contents=prompt)
+            resp = cli.models.generate_content(model=m, contents=prompt)
             if resp and resp.text:
                 return resp.text.strip()
         except Exception as e:
