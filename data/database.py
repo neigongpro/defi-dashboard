@@ -154,6 +154,73 @@ def _init_db_conn(conn: sqlite3.Connection) -> None:
                 cursor.execute(f"ALTER TABLE user_portfolio ADD COLUMN {col_name} {col_def};")
             except Exception:
                 pass
+
+    # Curated Wallets (Интересные кошельки) Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS curated_wallets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        address TEXT UNIQUE NOT NULL,
+        label TEXT NOT NULL,
+        strategy_type TEXT NOT NULL,
+        revert_url TEXT,
+        debank_url TEXT,
+        chains TEXT,
+        protocols TEXT,
+        ai_summary TEXT,
+        tags TEXT,
+        estimated_tvl TEXT DEFAULT 'Unknown',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_curated_addr ON curated_wallets(address);")
+
+    # Seed initial interesting wallets if table is empty
+    cursor.execute("SELECT COUNT(*) FROM curated_wallets")
+    if cursor.fetchone()[0] == 0:
+        initial_wallets = [
+            (
+                "0x47d06a6d5e3f4e738dea3e8df98a4525499f7619",
+                "Uniswap v3 Concentrated LP Alpha",
+                "Концентрированная ликвидность & Revert Auto-Compound",
+                "https://revert.finance/#/account/0x47d06a6d5e3f4e738dea3e8df98a4525499f7619",
+                "https://debank.com/profile/0x47d06a6d5e3f4e738dea3e8df98a4525499f7619",
+                "Arbitrum, Ethereum",
+                "Uniswap v3, Revert Finance",
+                "Профессиональный LP-управляющий на Uniswap v3 и Revert Finance. Специализируется на узких диапазонах ликвидности в парах ETH/USDC и WBTC/ETH с алгоритмическим ребалансом тиков. Генерирует повышенную комиссионную доходность (Fee APY > 35%) при контроле непостоянных потерь (Impermanent Loss).",
+                "Uniswap v3, Revert, LP Alpha, Concentrated",
+                "$1.2M+"
+            ),
+            (
+                "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+                "Vitalik Buterin (Ecosystem Treasury)",
+                "Долгосрочный Supply & Multi-Chain экосистема",
+                "https://revert.finance/#/account/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+                "https://debank.com/profile/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+                "Ethereum, Arbitrum, Base, Optimism",
+                "Aave v3, Maker/Spark, Lido",
+                "Публичный кошелек основателя Ethereum. Стратегия долгосрочного удержания нативного ETH, распределение по L2-сетям и консервативное кредитование в проверенных Tier-1 протоколах Aave v3 без использования рискованного левериджа.",
+                "Tier-1 Whale, Aave v3, Staking, Long-Term",
+                "$500M+"
+            ),
+            (
+                "0x1111111254fb6c44bac0bed2854e76f90643097d",
+                "1inch DEX Aggregator Router",
+                "Глубокая ликвидность DEX & Межсетевые маршруты",
+                "https://revert.finance/#/account/0x1111111254fb6c44bac0bed2854e76f90643097d",
+                "https://debank.com/profile/0x1111111254fb6c44bac0bed2854e76f90643097d",
+                "Ethereum, Arbitrum, Base, BSC, Polygon",
+                "1inch, Uniswap, Curve, Balancer",
+                "Ключевой ончейн-маркетмейкер и маршрутизатор ликвидности. Обеспечивает глубокую ликвидность на децентрализованных биржах и межсетевые свопы, балансируя пулы с минимальным проскальзыванием.",
+                "DEX Whale, High Frequency, Arbitrage",
+                "$50M+"
+            )
+        ]
+        cursor.executemany("""
+        INSERT OR IGNORE INTO curated_wallets 
+        (address, label, strategy_type, revert_url, debank_url, chains, protocols, ai_summary, tags, estimated_tvl)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, initial_wallets)
+
     conn.commit()
 
 
@@ -931,4 +998,102 @@ def search_pools_for_autocomplete(
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+# ──────────────────────────────────────────────
+#  CURATED WALLETS (ИНТЕРЕСНЫЕ КОШЕЛЬКИ) HELPERS
+# ──────────────────────────────────────────────
+
+def get_curated_wallets(db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Retrieve all curated interesting DeFi wallets sorted by id."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT id, address, label, strategy_type, revert_url, debank_url, 
+           chains, protocols, ai_summary, tags, estimated_tvl, created_at
+    FROM curated_wallets
+    ORDER BY id ASC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_curated_wallet_by_address(address: str, db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Retrieve a single curated wallet by address."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT id, address, label, strategy_type, revert_url, debank_url, 
+           chains, protocols, ai_summary, tags, estimated_tvl, created_at
+    FROM curated_wallets
+    WHERE LOWER(address) = LOWER(?)
+    LIMIT 1
+    """, (address.strip(),))
+    row = cursor.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def add_curated_wallet(
+    address: str,
+    label: str,
+    strategy_type: str,
+    revert_url: Optional[str] = None,
+    debank_url: Optional[str] = None,
+    chains: str = "",
+    protocols: str = "",
+    ai_summary: str = "",
+    tags: str = "",
+    estimated_tvl: str = "Unknown",
+    db_path: Optional[str] = None
+) -> int:
+    """Add or replace a curated wallet in the database."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    addr_clean = address.strip()
+    rev_url = revert_url or f"https://revert.finance/#/account/{addr_clean}"
+    deb_url = debank_url or f"https://debank.com/profile/{addr_clean}"
+
+    cursor.execute("""
+    INSERT INTO curated_wallets 
+    (address, label, strategy_type, revert_url, debank_url, chains, protocols, ai_summary, tags, estimated_tvl)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(address) DO UPDATE SET
+        label=excluded.label,
+        strategy_type=excluded.strategy_type,
+        revert_url=excluded.revert_url,
+        debank_url=excluded.debank_url,
+        chains=excluded.chains,
+        protocols=excluded.protocols,
+        ai_summary=excluded.ai_summary,
+        tags=excluded.tags,
+        estimated_tvl=excluded.estimated_tvl
+    """, (addr_clean, label, strategy_type, rev_url, deb_url, chains, protocols, ai_summary, tags, estimated_tvl))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+
+def delete_curated_wallet(wallet_id: int, db_path: Optional[str] = None) -> bool:
+    """Delete a curated wallet by ID."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM curated_wallets WHERE id = ?", (wallet_id,))
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    conn.close()
+    return deleted
+
+
+def update_curated_wallet_ai(wallet_id: int, ai_summary: str, db_path: Optional[str] = None) -> bool:
+    """Update AI summary for a curated wallet."""
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE curated_wallets SET ai_summary = ? WHERE id = ?", (ai_summary, wallet_id))
+    conn.commit()
+    updated = cursor.rowcount > 0
+    conn.close()
+    return updated
 

@@ -24,6 +24,11 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button onclick="openCuratedWalletsModal()" id="curatedWalletsBtn" class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-sky-500/20 hover:from-amber-500/30 hover:to-purple-500/30 text-amber-300 border border-amber-500/30 transition-all flex items-center space-x-1.5 shadow-sm cursor-pointer">
+                <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span>⭐ Интересные кошельки</span>
+            </button>
+
             <button onclick="openBoostModal()" class="px-3 py-1.5 rounded-md text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center space-x-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer">
                 <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
                 <span>🚀 Boost / Добавить позицию</span>
@@ -134,7 +139,8 @@
             <div class="space-y-1.5">
                 <div class="flex flex-col sm:flex-row gap-2">
                     <div class="flex-1 relative">
-                        <input type="text" id="walletAddressInput" placeholder="0x... (EVM адрес) или Solana / Sui публичный ключ" class="w-full bg-[#06080e] text-gray-100 placeholder-gray-500 rounded-lg px-3 py-2 border border-white/[0.12] focus:outline-none focus:border-sky-500 font-mono text-xs shadow-inner">
+                        <input type="text" id="walletAddressInput" oninput="onWalletAddressInput(this.value)" placeholder="0x... (EVM адрес) или Solana / Sui публичный ключ" class="w-full bg-[#06080e] text-gray-100 placeholder-gray-500 rounded-lg px-3 py-2 border border-white/[0.12] focus:outline-none focus:border-sky-500 font-mono text-xs shadow-inner">
+                        <div id="ecosystemDetectBadge" class="hidden font-mono mt-1"></div>
                     </div>
                     <button onclick="scanWalletAddress()" id="scanAddressBtn" class="px-4 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-sky-600 to-teal-600 hover:from-sky-500 hover:to-teal-500 text-white transition-all flex items-center justify-center space-x-2 shrink-0 cursor-pointer shadow-lg shadow-sky-600/20 active:scale-98">
                         <i data-lucide="search" class="w-3.5 h-3.5"></i>
@@ -144,11 +150,18 @@
                 <!-- Quick Address Autofill Helpers -->
                 <div class="flex items-center space-x-2 text-[10px] text-gray-400 overflow-x-auto py-0.5">
                     <span class="text-gray-500 shrink-0">Быстрый пример:</span>
-                    <button type="button" onclick="fillSampleAddress('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')" class="text-sky-400 hover:underline cursor-pointer font-mono shrink-0">Vitalik (Multi-Chain LP)</button>
+                    <button type="button" onclick="fillSampleAddress('0x47d06a6d5e3f4e738dea3e8df98a4525499f7619')" class="text-amber-400 hover:underline cursor-pointer font-mono shrink-0">⭐ Revert LP Whale</button>
                     <span class="text-gray-600">•</span>
-                    <button type="button" onclick="fillSampleAddress('0x1111111254fb6c44bac0bed2854e76f90643097d')" class="text-teal-400 hover:underline cursor-pointer font-mono shrink-0">1inch Whale (DeFi)</button>
+                    <button type="button" onclick="fillSampleAddress('0xdBbbB030ec24d3B075BFb74637B3D70DE0e620b3')" class="text-emerald-400 hover:underline cursor-pointer font-mono shrink-0">DeBank EVM Wallet</button>
                     <span class="text-gray-600">•</span>
-                    <button type="button" onclick="fillSampleAddress('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin')" class="text-purple-400 hover:underline cursor-pointer font-mono shrink-0">Solana Raydium LP</button>
+                    <button type="button" onclick="fillSampleAddress('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045')" class="text-sky-400 hover:underline cursor-pointer font-mono shrink-0">Vitalik (Multi-Chain)</button>
+                    <span class="text-gray-600">•</span>
+                    <button type="button" onclick="fillSampleAddress('9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin')" class="text-fuchsia-400 hover:underline cursor-pointer font-mono shrink-0">Solana LP</button>
+                    <span class="text-gray-600">•</span>
+                    <button type="button" onclick="openCuratedWalletsModal()" class="text-purple-400 hover:underline cursor-pointer font-medium shrink-0 flex items-center space-x-1">
+                        <i data-lucide="sparkles" class="w-3 h-3"></i>
+                        <span>Все интересные кошельки →</span>
+                    </button>
                 </div>
             </div>
 
@@ -425,6 +438,150 @@
                     {% endif %}
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: ⭐ Интересные кошельки & Alpha Smart Money -->
+<div id="curatedWalletsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-[#0b0f1a] border border-white/[0.14] rounded-2xl w-full max-w-4xl p-4 sm:p-5 shadow-2xl relative max-h-[90vh] flex flex-col my-auto" onclick="event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.08] shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                    <i data-lucide="star" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white tracking-wide flex items-center space-x-2">
+                        <span>⭐ Интересные Кошельки & Alpha Smart Money</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono">Gemini 3.8 AI</span>
+                    </h3>
+                    <p class="text-[11px] text-gray-400">Курируемые смарт-кошельки и киты концентрированной ликвидности с прямыми ссылками на Revert Finance / DeBank и AI-анализом стратегий.</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleAddCuratedWalletForm()" class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-white/[0.06] hover:bg-white/[0.1] text-gray-300 hover:text-white border border-white/[0.1] transition-all flex items-center space-x-1 cursor-pointer">
+                    <i data-lucide="plus" class="w-3 h-3"></i>
+                    <span>+ Добавить кошелек</span>
+                </button>
+                <button onclick="closeCuratedWalletsModal()" class="text-gray-400 hover:text-white p-1 text-sm cursor-pointer transition-colors" title="Закрыть">✕</button>
+            </div>
+        </div>
+
+        <!-- Add Wallet Subform (collapsible) -->
+        <div id="addCuratedWalletForm" class="hidden mb-3 p-3 rounded-xl bg-[#06080e] border border-white/[0.1] space-y-3 shrink-0">
+            <div class="flex items-center justify-between">
+                <div class="text-xs font-bold text-white flex items-center space-x-1.5">
+                    <i data-lucide="user-plus" class="w-3.5 h-3.5 text-teal-400"></i>
+                    <span>Добавление интересного кошелька для отслеживания</span>
+                </div>
+                <button onclick="toggleAddCuratedWalletForm()" class="text-gray-400 hover:text-white text-xs cursor-pointer">✕ Отмена</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Адрес кошелька (EVM / Solana / Move):</label>
+                    <input type="text" id="newCuratedAddress" placeholder="0x..." class="w-full bg-[#0a0d15] text-white rounded px-2.5 py-1.5 border border-white/[0.1] font-mono text-[11px] focus:outline-none focus:border-teal-500">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Название / Метка:</label>
+                    <input type="text" id="newCuratedLabel" placeholder="Напр. Uniswap v3 Arbitrum Whale" class="w-full bg-[#0a0d15] text-white rounded px-2.5 py-1.5 border border-white/[0.1] text-[11px] focus:outline-none focus:border-teal-500">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Тип стратегии:</label>
+                    <input type="text" id="newCuratedStrategy" placeholder="Концентрированная ликвидность / Лендинг" class="w-full bg-[#0a0d15] text-white rounded px-2.5 py-1.5 border border-white/[0.1] text-[11px] focus:outline-none focus:border-teal-500">
+                </div>
+                <div>
+                    <label class="text-[10px] text-gray-400 block mb-1">Сети (через запятую):</label>
+                    <input type="text" id="newCuratedChains" placeholder="Arbitrum, Ethereum, Base" class="w-full bg-[#0a0d15] text-white rounded px-2.5 py-1.5 border border-white/[0.1] text-[11px] focus:outline-none focus:border-teal-500">
+                </div>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+                <label class="flex items-center space-x-2 text-[11px] text-gray-300 cursor-pointer">
+                    <input type="checkbox" id="newCuratedGenAi" checked class="rounded border-gray-700 text-purple-500 focus:ring-0">
+                    <span>Автоматически сгенерировать AI-разбор стратегии (Gemini 3.8 Flash)</span>
+                </label>
+                <button type="button" onclick="submitNewCuratedWallet()" id="submitNewCuratedBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all cursor-pointer">
+                    Сохранить в базу
+                </button>
+            </div>
+        </div>
+
+        <!-- Wallets List Container (Scrollable) -->
+        <div class="overflow-y-auto pr-1 space-y-3 flex-1" id="curatedWalletsList">
+            {% if curated_wallets %}
+                {% for w in curated_wallets %}
+                <div class="p-3.5 rounded-xl bg-[#070a12] border border-white/[0.08] hover:border-amber-500/30 transition-all space-y-3 shadow-md" id="curated-wallet-card-{{ w.id }}">
+                    <!-- Card Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-white/[0.05]">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500/20 to-purple-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 font-bold text-xs shrink-0">
+                                💎
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center space-x-2">
+                                    <span>{{ w.label }}</span>
+                                    {% if w.strategy_type %}
+                                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/25">{{ w.strategy_type }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-[10px] text-gray-400 font-mono mt-0.5 flex items-center space-x-1.5">
+                                    <span>{{ w.address }}</span>
+                                    <button onclick="navigator.clipboard.writeText('{{ w.address }}'); alert('Адрес скопирован!');" class="text-gray-500 hover:text-white" title="Скопировать">📋</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TVL & External Link Badges -->
+                        <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+                            {% if w.estimated_tvl and w.estimated_tvl != 'Unknown' %}
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono font-semibold">
+                                {{ w.estimated_tvl }}
+                            </span>
+                            {% endif %}
+                            {% if w.revert_url %}
+                            <a href="{{ w.revert_url }}" target="_blank" class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 hover:text-white border border-purple-500/30 transition-all flex items-center space-x-1 font-medium" title="Открыть в Revert Finance">
+                                <span>🦄 Revert</span>
+                                <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                            </a>
+                            {% endif %}
+                            {% if w.debank_url %}
+                            <a href="{{ w.debank_url }}" target="_blank" class="px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 hover:text-white border border-sky-500/30 transition-all flex items-center space-x-1 font-medium" title="Открыть профиль в DeBank">
+                                <span>📊 DeBank</span>
+                                <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                            </a>
+                            {% endif %}
+                            <button onclick="selectCuratedWallet('{{ w.address }}')" class="px-2.5 py-0.5 rounded bg-gradient-to-r from-sky-600 to-teal-600 hover:from-sky-500 hover:to-teal-500 text-white font-semibold flex items-center space-x-1 cursor-pointer transition-all shadow-sm shadow-sky-600/20">
+                                <i data-lucide="scan" class="w-3 h-3"></i>
+                                <span>Сканировать</span>
+                            </button>
+                            <button onclick="deleteCuratedWallet({{ w.id }})" class="p-1 rounded text-gray-500 hover:text-rose-400 transition-colors" title="Удалить из списка">
+                                <i data-lucide="trash-2" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AI Analysis Box -->
+                    <div class="p-3 rounded-xl bg-gradient-to-br from-purple-950/20 via-[#0a0d16] to-[#070a12] border border-purple-500/20 space-y-1.5">
+                        <div class="flex items-center justify-between text-[11px] font-semibold text-purple-300">
+                            <div class="flex items-center space-x-1.5">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i>
+                                <span>AI-Разбор стратегии (Gemini 3.8 Flash):</span>
+                            </div>
+                            <button onclick="refreshCuratedWalletAi({{ w.id }})" class="text-[10px] text-purple-400 hover:text-purple-200 cursor-pointer flex items-center space-x-1">
+                                <span>↻ Обновить AI</span>
+                            </button>
+                        </div>
+                        <div class="text-xs text-gray-200 leading-relaxed font-sans whitespace-pre-line" id="curated-ai-text-{{ w.id }}">
+                            {{ w.ai_summary or 'Анализ стратегии подготавливается нейросетью...' }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-8 text-gray-500 text-xs">
+                    База кошельков пуста. Нажмите «+ Добавить кошелек» выше.
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -1226,14 +1383,341 @@
         }
     }
 
+    // ──────────────────────────────────────────────
+    //  SMART ADDRESS DETECTION & NETWORK AUTO-SELECTION
+    // ──────────────────────────────────────────────
+
+    const EVM_CHAIN_LIST = [
+        'Ethereum', 'Arbitrum', 'Base', 'Optimism', 'Polygon', 'BSC', 'Avalanche',
+        'Plasma', 'Sonic', 'Linea', 'Scroll', 'Blast', 'Mantle', 'Berachain',
+        'Fraxtal', 'Gnosis', 'Celo', 'Fantom', 'zkSync Era', 'Sei', 'Unichain', 'Hyperliquid L1'
+    ];
+
+    const CHAIN_BADGES = {
+        'Ethereum': { bg: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40', dot: 'bg-indigo-400', tag: 'ETH' },
+        'Arbitrum': { bg: 'bg-sky-500/20 text-sky-300 border-sky-500/40', dot: 'bg-sky-400', tag: 'ARB' },
+        'Base': { bg: 'bg-blue-500/20 text-blue-300 border-blue-500/40', dot: 'bg-blue-400', tag: 'BASE' },
+        'Optimism': { bg: 'bg-red-500/20 text-red-300 border-red-500/40', dot: 'bg-red-400', tag: 'OP' },
+        'Polygon': { bg: 'bg-purple-500/20 text-purple-300 border-purple-500/40', dot: 'bg-purple-400', tag: 'POL' },
+        'BSC': { bg: 'bg-amber-500/20 text-amber-300 border-amber-500/40', dot: 'bg-amber-400', tag: 'BNB' },
+        'Avalanche': { bg: 'bg-rose-500/20 text-rose-300 border-rose-500/40', dot: 'bg-rose-400', tag: 'AVAX' },
+        'Plasma': { bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', tag: 'XPL' },
+        'Sonic': { bg: 'bg-orange-500/20 text-orange-300 border-orange-500/40', dot: 'bg-orange-400', tag: 'S' },
+        'Solana': { bg: 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40', dot: 'bg-fuchsia-400', tag: 'SOL' },
+        'Sui': { bg: 'bg-teal-500/20 text-teal-300 border-teal-500/40', dot: 'bg-teal-400', tag: 'SUI' },
+        'Aptos': { bg: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40', dot: 'bg-cyan-400', tag: 'APT' },
+        'Linea': { bg: 'bg-zinc-500/20 text-zinc-300 border-zinc-500/40', dot: 'bg-zinc-400', tag: 'LINEA' },
+        'Scroll': { bg: 'bg-amber-500/20 text-amber-300 border-amber-500/40', dot: 'bg-amber-400', tag: 'SCROLL' },
+        'Blast': { bg: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40', dot: 'bg-yellow-400', tag: 'BLAST' },
+        'Mantle': { bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', tag: 'MNT' },
+        'Berachain': { bg: 'bg-amber-600/20 text-amber-400 border-amber-600/40', dot: 'bg-amber-400', tag: 'BERA' },
+        'Fraxtal': { bg: 'bg-slate-500/20 text-slate-300 border-slate-500/40', dot: 'bg-slate-400', tag: 'FRAX' },
+        'Gnosis': { bg: 'bg-emerald-600/20 text-emerald-400 border-emerald-600/40', dot: 'bg-emerald-400', tag: 'GNO' },
+        'Celo': { bg: 'bg-lime-500/20 text-lime-300 border-lime-500/40', dot: 'bg-lime-400', tag: 'CELO' },
+        'Fantom': { bg: 'bg-blue-600/20 text-blue-400 border-blue-600/40', dot: 'bg-blue-400', tag: 'FTM' },
+        'zkSync Era': { bg: 'bg-violet-500/20 text-violet-300 border-violet-500/40', dot: 'bg-violet-400', tag: 'ZK' },
+        'TON': { bg: 'bg-sky-500/20 text-sky-300 border-sky-500/40', dot: 'bg-sky-400', tag: 'TON' },
+        'Tron': { bg: 'bg-red-600/20 text-red-400 border-red-600/40', dot: 'bg-red-400', tag: 'TRX' },
+        'Near': { bg: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40', dot: 'bg-emerald-400', tag: 'NEAR' },
+        'Sei': { bg: 'bg-rose-600/20 text-rose-400 border-rose-600/40', dot: 'bg-rose-400', tag: 'SEI' },
+        'Unichain': { bg: 'bg-pink-500/20 text-pink-300 border-pink-500/40', dot: 'bg-pink-400', tag: 'UNI' },
+        'Hyperliquid L1': { bg: 'bg-teal-500/20 text-teal-300 border-teal-500/40', dot: 'bg-teal-400', tag: 'HYPE' }
+    };
+
+    function onWalletAddressInput(val) {
+        val = (val || '').trim();
+        const badge = document.getElementById('ecosystemDetectBadge');
+        const boxes = document.querySelectorAll('input[name="scan_chain"]');
+
+        if (!val) {
+            if (badge) {
+                badge.classList.add('hidden');
+                badge.innerHTML = '';
+            }
+            return;
+        }
+
+        const isEvm = /^0x[a-fA-F0-9]{40}$/.test(val);
+        const isMove = /^0x[a-fA-F0-9]{64}$/.test(val);
+        const isSolana = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(val) && !val.startsWith('0x');
+        const isTron = /^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(val);
+
+        if (isEvm) {
+            boxes.forEach(b => {
+                b.checked = EVM_CHAIN_LIST.includes(b.value);
+            });
+            if (badge) {
+                badge.classList.remove('hidden');
+                badge.className = 'text-[11px] font-mono mt-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 flex items-center space-x-2 inline-flex shadow-sm';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span>⚡ EVM-адрес распознан · Автоматически активированы 22 EVM-сети</span>';
+            }
+        } else if (isMove) {
+            boxes.forEach(b => {
+                b.checked = (b.value === 'Sui' || b.value === 'Aptos');
+            });
+            if (badge) {
+                badge.classList.remove('hidden');
+                badge.className = 'text-[11px] font-mono mt-1.5 px-2.5 py-1 rounded-md bg-teal-500/10 border border-teal-500/25 text-teal-300 flex items-center space-x-2 inline-flex shadow-sm';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span><span>⚡ Move-экосистема (Sui / Aptos) · Выбраны сети Sui и Aptos</span>';
+            }
+        } else if (isSolana) {
+            boxes.forEach(b => {
+                b.checked = (b.value === 'Solana');
+            });
+            if (badge) {
+                badge.classList.remove('hidden');
+                badge.className = 'text-[11px] font-mono mt-1.5 px-2.5 py-1 rounded-md bg-fuchsia-500/10 border border-fuchsia-500/25 text-fuchsia-300 flex items-center space-x-2 inline-flex shadow-sm';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse"></span><span>⚡ Solana-адрес распознан · Выбрана сеть Solana</span>';
+            }
+        } else if (isTron) {
+            boxes.forEach(b => {
+                b.checked = (b.value === 'Tron');
+            });
+            if (badge) {
+                badge.classList.remove('hidden');
+                badge.className = 'text-[11px] font-mono mt-1.5 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/25 text-red-300 flex items-center space-x-2 inline-flex shadow-sm';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span><span>⚡ Tron-адрес распознан · Выбрана сеть Tron</span>';
+            }
+        }
+    }
+
     function toggleAllChains(checkAll = true) {
         const boxes = document.querySelectorAll('input[name="scan_chain"]');
         boxes.forEach(b => b.checked = checkAll);
     }
 
     function fillSampleAddress(addr) {
-        document.getElementById('walletAddressInput').value = addr;
+        const input = document.getElementById('walletAddressInput');
+        input.value = addr;
+        onWalletAddressInput(addr);
         scanWalletAddress();
+    }
+
+    // ──────────────────────────────────────────────
+    //  CURATED WALLETS (ИНТЕРЕСНЫЕ КОШЕЛЬКИ) MODAL
+    // ──────────────────────────────────────────────
+
+    function openCuratedWalletsModal() {
+        const m = document.getElementById('curatedWalletsModal');
+        if (m) {
+            m.classList.remove('hidden');
+            lucide.createIcons();
+        }
+    }
+
+    function closeCuratedWalletsModal() {
+        const m = document.getElementById('curatedWalletsModal');
+        if (m) m.classList.add('hidden');
+    }
+
+    function toggleAddCuratedWalletForm() {
+        const form = document.getElementById('addCuratedWalletForm');
+        if (form) form.classList.toggle('hidden');
+    }
+
+    function selectCuratedWallet(addr) {
+        closeCuratedWalletsModal();
+        toggleWalletScanner(true);
+        const input = document.getElementById('walletAddressInput');
+        input.value = addr;
+        onWalletAddressInput(addr);
+        scanWalletAddress();
+    }
+
+    async function submitNewCuratedWallet() {
+        const addr = document.getElementById('newCuratedAddress').value.trim();
+        const label = document.getElementById('newCuratedLabel').value.trim();
+        const strategy = document.getElementById('newCuratedStrategy').value.trim();
+        const chains = document.getElementById('newCuratedChains').value.trim();
+        const genAi = document.getElementById('newCuratedGenAi').checked;
+        const btn = document.getElementById('submitNewCuratedBtn');
+
+        if (!addr || !label) {
+            alert('Пожалуйста, укажите адрес и название кошелька');
+            return;
+        }
+
+        const origBtnText = btn.innerText;
+        btn.innerText = 'Сохранение & AI анализ...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/curated-wallets', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    address: addr,
+                    label: label,
+                    strategy_type: strategy || 'DeFi Стратегия',
+                    chains: chains,
+                    generate_ai: genAi
+                })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                alert('Кошелек успешно добавлен в базу!');
+                toggleAddCuratedWalletForm();
+                await loadCuratedWallets();
+            } else {
+                alert(data.message || 'Ошибка при добавлении кошелька');
+            }
+        } catch(err) {
+            console.error('Add curated wallet error:', err);
+            alert('Ошибка сервера при добавлении кошелька');
+        } finally {
+            btn.innerText = origBtnText;
+            btn.disabled = false;
+        }
+    }
+
+    async function deleteCuratedWallet(walletId) {
+        if (!confirm('Удалить этот кошелек из каталога интересных кошельков?')) return;
+        try {
+            const res = await fetch(`/api/curated-wallets/${walletId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.status === 'success') {
+                const card = document.getElementById(`curated-wallet-card-${walletId}`);
+                if (card) card.remove();
+            }
+        } catch(err) {
+            console.error('Delete curated wallet error:', err);
+        }
+    }
+
+    async function refreshCuratedWalletAi(walletId) {
+        const textElem = document.getElementById(`curated-ai-text-${walletId}`);
+        if (textElem) {
+            textElem.innerText = 'Нейросеть Gemini 3.8 анализирует стратегию и позиции ончейн...';
+        }
+
+        try {
+            const res = await fetch(`/api/curated-wallets/${walletId}/refresh-ai`, { method: 'POST' });
+            const data = await res.json();
+            if (data.status === 'success' && data.wallet && textElem) {
+                textElem.innerText = data.wallet.ai_summary;
+            } else {
+                alert(data.message || 'Не удалось обновить AI-анализ');
+            }
+        } catch(err) {
+            console.error('Refresh AI error:', err);
+            if (textElem) textElem.innerText = 'Ошибка при генерации AI-анализа';
+        }
+    }
+
+    async function loadCuratedWallets() {
+        try {
+            const res = await fetch('/api/curated-wallets');
+            const data = await res.json();
+            if (data.status === 'success') {
+                renderCuratedWalletsList(data.wallets);
+            }
+        } catch(err) {
+            console.error('Load curated wallets error:', err);
+        }
+    }
+
+    function renderCuratedWalletsList(wallets) {
+        const container = document.getElementById('curatedWalletsList');
+        if (!container) return;
+
+        if (!wallets || !wallets.length) {
+            container.innerHTML = '<div class="text-center py-8 text-gray-500 text-xs">База кошельков пуста. Нажмите «+ Добавить кошелек» выше.</div>';
+            return;
+        }
+
+        container.innerHTML = wallets.map(w => `
+            <div class="p-3.5 rounded-xl bg-[#070a12] border border-white/[0.08] hover:border-amber-500/30 transition-all space-y-3 shadow-md" id="curated-wallet-card-${w.id}">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-white/[0.05]">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500/20 to-purple-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300 font-bold text-xs shrink-0">
+                            💎
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-white flex items-center space-x-2">
+                                <span>${w.label}</span>
+                                ${w.strategy_type ? `<span class="text-[9px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/25">${w.strategy_type}</span>` : ''}
+                            </div>
+                            <div class="text-[10px] text-gray-400 font-mono mt-0.5 flex items-center space-x-1.5">
+                                <span>${w.address}</span>
+                                <button onclick="navigator.clipboard.writeText('${w.address}'); alert('Адрес скопирован!');" class="text-gray-500 hover:text-white cursor-pointer" title="Скопировать">📋</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-1.5 text-[10px]">
+                        ${w.estimated_tvl && w.estimated_tvl !== 'Unknown' ? `<span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono font-semibold">${w.estimated_tvl}</span>` : ''}
+                        ${w.revert_url ? `
+                        <a href="${w.revert_url}" target="_blank" class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 hover:text-white border border-purple-500/30 transition-all flex items-center space-x-1 font-medium" title="Открыть в Revert Finance">
+                            <span>🦄 Revert</span>
+                            <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                        </a>` : ''}
+                        ${w.debank_url ? `
+                        <a href="${w.debank_url}" target="_blank" class="px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 hover:text-white border border-sky-500/30 transition-all flex items-center space-x-1 font-medium" title="Открыть профиль в DeBank">
+                            <span>📊 DeBank</span>
+                            <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                        </a>` : ''}
+                        <button onclick="selectCuratedWallet('${w.address}')" class="px-2.5 py-0.5 rounded bg-gradient-to-r from-sky-600 to-teal-600 hover:from-sky-500 hover:to-teal-500 text-white font-semibold flex items-center space-x-1 cursor-pointer transition-all shadow-sm shadow-sky-600/20">
+                            <i data-lucide="scan" class="w-3 h-3"></i>
+                            <span>Сканировать</span>
+                        </button>
+                        <button onclick="deleteCuratedWallet(${w.id})" class="p-1 rounded text-gray-500 hover:text-rose-400 transition-colors cursor-pointer" title="Удалить">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-gradient-to-br from-purple-950/20 via-[#0a0d16] to-[#070a12] border border-purple-500/20 space-y-1.5">
+                    <div class="flex items-center justify-between text-[11px] font-semibold text-purple-300">
+                        <div class="flex items-center space-x-1.5">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-400"></i>
+                            <span>AI-Разбор стратегии (Gemini 3.8 Flash):</span>
+                        </div>
+                        <button onclick="refreshCuratedWalletAi(${w.id})" class="text-[10px] text-purple-400 hover:text-purple-200 cursor-pointer flex items-center space-x-1">
+                            <span>↻ Обновить AI</span>
+                        </button>
+                    </div>
+                    <div class="text-xs text-gray-200 leading-relaxed font-sans whitespace-pre-line" id="curated-ai-text-${w.id}">
+                        ${w.ai_summary || 'Анализ стратегии подготавливается нейросетью...'}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        lucide.createIcons();
+    }
+
+
+    // ──────────────────────────────────────────────
+    //  WEB3 WALLET SCANNER & DEBANK-INSPIRED UI
+    // ──────────────────────────────────────────────
+
+    let currentScannedData = null;
+    let currentScanChainFilter = 'all';
+
+    function formatPrice(p) {
+        if (p === undefined || p === null) return '$0.0000';
+        const num = Number(p);
+        if (isNaN(num) || num === 0) return '$0.0000';
+        if (num < 0.0001) return '<$0.0001';
+        if (num < 1) return '$' + num.toFixed(4);
+        if (num < 10) return '$' + num.toFixed(4);
+        return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    }
+
+    function getTokenSymbolBadge(sym) {
+        sym = (sym || '').toUpperCase();
+        if (sym === 'ETH' || sym === 'WETH') return '<span class="text-indigo-300 font-bold">Ξ</span>';
+        if (sym === 'BTC' || sym === 'WBTC') return '<span class="text-amber-400 font-bold">₿</span>';
+        if (sym === 'USDT' || sym === 'USDT0') return '<span class="text-emerald-400 font-bold">₮</span>';
+        if (sym === 'USDC') return '<span class="text-sky-400 font-bold">$</span>';
+        if (sym === 'SOL') return '<span class="text-fuchsia-400 font-bold">◎</span>';
+        if (sym === 'AVAX') return '<span class="text-rose-400 font-bold">▲</span>';
+        if (sym === 'POL' || sym === 'MATIC') return '<span class="text-purple-400 font-bold">⬡</span>';
+        if (sym === 'BNB') return '<span class="text-amber-400 font-bold">B</span>';
+        if (sym === 'SUI') return '<span class="text-teal-400 font-bold">💧</span>';
+        if (sym === 'APT') return '<span class="text-cyan-400 font-bold">A</span>';
+        if (sym === 'XPL') return '<span class="text-emerald-400 font-bold">⚡</span>';
+        return `<span class="text-gray-200 text-[9px] font-bold">${sym.substring(0, 3)}</span>`;
     }
 
     async function scanWalletAddress() {
@@ -1259,6 +1743,7 @@
             const data = await res.json();
             if (data.status === 'success') {
                 scannedPositionsCache = data.positions;
+                currentScannedData = data;
                 renderScannedPositions(data);
             } else {
                 alert(data.message || 'Ошибка при сканировании адреса');
@@ -1280,11 +1765,11 @@
 
         area.classList.remove('hidden');
 
-        // Overall summary banner values
+        // Overall summary calculations
         const overall = data.overall_summary || {
             total_deposited_usd: data.positions.reduce((acc, p) => acc + (p.initial_deposit_usd || p.amount_usd || 0), 0),
             current_value_usd: data.total_value_usd,
-            net_pnl_usd: data.net_pnl_usd,
+            net_pnl_usd: data.net_pnl_usd || 0,
             net_pnl_pct: data.total_value_usd > 0 ? (data.net_pnl_usd / data.total_value_usd * 100).toFixed(2) : 0,
             chains_count: new Set(data.positions.map(p => p.chain)).size,
             positions_count: data.positions.length
@@ -1294,7 +1779,7 @@
             ? `${data.address.substring(0, 6)}...${data.address.substring(data.address.length - 4)}` 
             : data.address;
 
-        msg.innerText = data.message || `Ончейн-аудит для ${shortAddr} (${overall.positions_count} активных позиций в ${overall.chains_count} сетях)`;
+        msg.innerText = data.message || `Ончейн-аудит: ${shortAddr} (${data.wallet_tokens ? data.wallet_tokens.length : 0} токенов, ${data.protocol_positions ? data.protocol_positions.length : 0} DeFi-позиций в ${overall.chains_count} сетях)`;
 
         document.getElementById('statTotalDeposited').innerText = '$' + Number(overall.total_deposited_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         document.getElementById('statCurrentBalance').innerText = '$' + Number(overall.current_value_usd || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1312,41 +1797,241 @@
 
         document.getElementById('statChainsSummary').innerText = `${overall.chains_count} сетей · $${Number(overall.current_value_usd || 0).toFixed(2)}`;
 
-        const chainBadgeColors = {
-            'Ethereum': { bg: 'bg-indigo-500/15', text: 'text-indigo-300', border: 'border-indigo-500/30', dot: 'bg-indigo-400' },
-            'Arbitrum': { bg: 'bg-sky-500/15', text: 'text-sky-300', border: 'border-sky-500/30', dot: 'bg-sky-400' },
-            'Base': { bg: 'bg-blue-500/15', text: 'text-blue-300', border: 'border-blue-500/30', dot: 'bg-blue-400' },
-            'Optimism': { bg: 'bg-red-500/15', text: 'text-red-300', border: 'border-red-500/30', dot: 'bg-red-400' },
-            'Polygon': { bg: 'bg-purple-500/15', text: 'text-purple-300', border: 'border-purple-500/30', dot: 'bg-purple-400' },
-            'BSC': { bg: 'bg-amber-500/15', text: 'text-amber-300', border: 'border-amber-500/30', dot: 'bg-amber-400' },
-            'Avalanche': { bg: 'bg-rose-500/15', text: 'text-rose-300', border: 'border-rose-500/30', dot: 'bg-rose-400' },
-            'Plasma': { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/30', dot: 'bg-emerald-400' },
-            'Sonic': { bg: 'bg-orange-500/15', text: 'text-orange-300', border: 'border-orange-500/30', dot: 'bg-orange-400' },
-            'Solana': { bg: 'bg-fuchsia-500/15', text: 'text-fuchsia-300', border: 'border-fuchsia-500/30', dot: 'bg-fuchsia-400' },
-            'Sui': { bg: 'bg-teal-500/15', text: 'text-teal-300', border: 'border-teal-500/30', dot: 'bg-teal-400' },
-            'Aptos': { bg: 'bg-cyan-500/15', text: 'text-cyan-300', border: 'border-cyan-500/30', dot: 'bg-cyan-400' },
-            'Linea': { bg: 'bg-zinc-500/15', text: 'text-zinc-300', border: 'border-zinc-500/30', dot: 'bg-zinc-400' },
-            'Scroll': { bg: 'bg-amber-500/15', text: 'text-amber-300', border: 'border-amber-500/30', dot: 'bg-amber-400' },
-            'Blast': { bg: 'bg-yellow-500/15', text: 'text-yellow-300', border: 'border-yellow-500/30', dot: 'bg-yellow-400' },
-            'Mantle': { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/30', dot: 'bg-emerald-400' },
-            'Berachain': { bg: 'bg-amber-600/15', text: 'text-amber-400', border: 'border-amber-600/30', dot: 'bg-amber-400' },
-            'Fraxtal': { bg: 'bg-slate-500/15', text: 'text-slate-300', border: 'border-slate-500/30', dot: 'bg-slate-400' },
-            'Gnosis': { bg: 'bg-emerald-600/15', text: 'text-emerald-400', border: 'border-emerald-600/30', dot: 'bg-emerald-400' },
-            'Celo': { bg: 'bg-lime-500/15', text: 'text-lime-300', border: 'border-lime-500/30', dot: 'bg-lime-400' },
-            'Fantom': { bg: 'bg-blue-600/15', text: 'text-blue-400', border: 'border-blue-600/30', dot: 'bg-blue-400' },
-            'zkSync Era': { bg: 'bg-violet-500/15', text: 'text-violet-300', border: 'border-violet-500/30', dot: 'bg-violet-400' },
-            'TON': { bg: 'bg-sky-500/15', text: 'text-sky-300', border: 'border-sky-500/30', dot: 'bg-sky-400' },
-            'Tron': { bg: 'bg-red-600/15', text: 'text-red-400', border: 'border-red-600/30', dot: 'bg-red-400' },
-            'Near': { bg: 'bg-emerald-500/15', text: 'text-emerald-300', border: 'border-emerald-500/30', dot: 'bg-emerald-400' },
-            'Sei': { bg: 'bg-rose-600/15', text: 'text-rose-400', border: 'border-rose-600/30', dot: 'bg-rose-400' },
-            'Unichain': { bg: 'bg-pink-500/15', text: 'text-pink-300', border: 'border-pink-500/30', dot: 'bg-pink-400' },
-            'Hyperliquid L1': { bg: 'bg-teal-500/15', text: 'text-teal-300', border: 'border-teal-500/30', dot: 'bg-teal-400' }
-        };
-
         let sectionsHtml = '';
 
-        // Section 1: DeFi Protocols Alert Banner (if 0 protocol positions)
-        if (!data.has_protocol_positions && (!data.protocol_positions || data.protocol_positions.length === 0)) {
+        // ──────────────────────────────────────────────
+        // 1. DEBANK CHAIN ALLOCATION BAR (Скриншот 1)
+        // ──────────────────────────────────────────────
+        const chainSummaries = (data.chain_summaries || []).slice().sort((a, b) => (b.current_value_usd || 0) - (a.current_value_usd || 0));
+        
+        const chainBarPillsHtml = chainSummaries.map(cs => {
+            const chainVal = cs.current_value_usd || 0;
+            const pct = overall.current_value_usd > 0 ? Math.round((chainVal / overall.current_value_usd) * 100) : 0;
+            const valFormatted = chainVal >= 1000 ? ('$' + (chainVal / 1000).toFixed(1) + 'K') : ('$' + Math.round(chainVal));
+            const cfg = CHAIN_BADGES[cs.chain] || { dot: 'bg-sky-400', tag: cs.chain.substring(0, 3).toUpperCase() };
+
+            return `
+            <button type="button" onclick="filterScanChain('${cs.chain}')" class="debank-chain-pill flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-medium bg-[#0b0f19] text-gray-300 hover:text-white border border-white/[0.08] hover:border-sky-500/30 cursor-pointer shrink-0 transition-all active:scale-95" data-chain="${cs.chain}">
+                <span class="w-2 h-2 rounded-full ${cfg.dot} shrink-0"></span>
+                <span class="font-semibold text-gray-200">${cs.chain}</span>
+                <span class="font-mono text-white font-bold">${valFormatted}</span>
+                <span class="font-mono text-gray-400 text-[10px]">${pct}%</span>
+            </button>
+            `;
+        }).join('');
+
+        sectionsHtml += `
+        <!-- DeBank Horizontal Chain Allocation Bar -->
+        <div class="rounded-xl bg-[#070a12] border border-white/[0.08] p-3 shadow-md space-y-2">
+            <div class="flex items-center justify-between text-xs">
+                <div class="flex items-center space-x-2 font-semibold text-gray-300">
+                    <i data-lucide="layers" class="w-3.5 h-3.5 text-sky-400"></i>
+                    <span class="uppercase tracking-wider text-[10px] text-gray-400">Распределение по сетям (DeBank Chain Bar):</span>
+                </div>
+                <div class="flex items-center space-x-2 text-[11px]">
+                    <a href="https://debank.com/profile/${data.address}" target="_blank" class="text-sky-400 hover:underline flex items-center space-x-1 font-mono">
+                        <span>Сверить в DeBank</span>
+                        <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                    </a>
+                    <span class="text-gray-600">•</span>
+                    <a href="https://revert.finance/#/account/${data.address}" target="_blank" class="text-purple-400 hover:underline flex items-center space-x-1 font-mono">
+                        <span>Revert LP</span>
+                        <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="flex items-center space-x-1.5 overflow-x-auto pb-1 scrollbar-thin" id="debankChainPillsRow">
+                <button type="button" onclick="filterScanChain('all')" class="debank-chain-pill active flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-500/40 cursor-pointer shrink-0 transition-all" data-chain="all">
+                    <span>All Chains</span>
+                    <span class="font-mono font-bold text-white">$${overall.current_value_usd >= 1000 ? (overall.current_value_usd / 1000).toFixed(1) + 'K' : Math.round(overall.current_value_usd)}</span>
+                    <span class="text-[10px] text-sky-300/80">100%</span>
+                </button>
+                ${chainBarPillsHtml}
+            </div>
+        </div>
+        `;
+
+        // ──────────────────────────────────────────────
+        // 2. DEBANK WALLET HOLDINGS TABLE (Скриншот 2)
+        // ──────────────────────────────────────────────
+        const walletTokens = data.wallet_tokens || [];
+        const totalWalletUsd = walletTokens.reduce((acc, t) => acc + (t.value_usd || 0), 0);
+
+        if (walletTokens.length > 0) {
+            sectionsHtml += `
+            <div class="rounded-xl border border-white/[0.08] bg-[#070b14] overflow-hidden shadow-lg" id="debankWalletCard">
+                <!-- Wallet Card Header -->
+                <div class="px-4 py-3 border-b border-white/[0.06] flex items-center justify-between bg-gradient-to-r from-[#090e1b] to-[#070b14]">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-6 h-6 rounded-md bg-sky-500/15 border border-sky-500/25 flex items-center justify-center text-sky-400 shadow-sm">
+                            <i data-lucide="wallet" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-white tracking-wide">Wallet</h3>
+                        <span class="text-[10px] font-mono text-gray-400 bg-white/[0.05] px-2 py-0.5 rounded" id="debankTokensCount">${walletTokens.length} токенов</span>
+                    </div>
+                    <div class="text-sm font-bold font-mono text-white" id="debankWalletTotalVal">
+                        $${Number(totalWalletUsd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                </div>
+
+                <!-- DeBank Tokens Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="text-[10px] uppercase font-semibold text-gray-400 border-b border-white/[0.04] bg-white/[0.01]">
+                            <tr>
+                                <th class="py-2.5 px-3">Token</th>
+                                <th class="py-2.5 px-3">Price</th>
+                                <th class="py-2.5 px-3">Amount</th>
+                                <th class="py-2.5 px-3 text-right">USD Value</th>
+                                <th class="py-2.5 px-3 text-center">Действие</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/[0.03]" id="debankTokensTableBody">
+                            ${walletTokens.map(t => {
+                                const priceFormatted = formatPrice(t.price_usd);
+                                const amountFormatted = t.balance_formatted || Number(t.balance).toFixed(4);
+                                const usdFormatted = t.value_usd >= 0.01 
+                                    ? ('$' + Number(t.value_usd).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) 
+                                    : '<$0.01';
+                                const chainCfg = CHAIN_BADGES[t.chain] || { dot: 'bg-sky-400', tag: t.chain.substring(0, 3).toUpperCase() };
+                                const cachedIdx = scannedPositionsCache.findIndex(p => p.protocol === 'Wallet Holding' && p.asset === t.symbol && p.chain === t.chain);
+
+                                return `
+                                <tr class="hover:bg-white/[0.02] transition-colors token-row" data-chain="${t.chain}">
+                                    <td class="py-2.5 px-3">
+                                        <div class="flex items-center space-x-3">
+                                            <!-- Token Avatar with DeBank Mini Chain Badge Overlay -->
+                                            <div class="relative w-7 h-7 flex-shrink-0">
+                                                <div class="w-7 h-7 rounded-full bg-[#121724] border border-white/[0.12] flex items-center justify-center font-bold text-[10px] shadow-inner">
+                                                    ${getTokenSymbolBadge(t.symbol)}
+                                                </div>
+                                                <div class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border border-[#070b14] flex items-center justify-center ${chainCfg.dot} shadow-sm" title="${t.chain}">
+                                                    <span class="text-[7px] text-[#070b14] font-black uppercase">${chainCfg.tag.substring(0, 1)}</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-white text-xs leading-tight">${t.symbol}</div>
+                                                <div class="text-[10px] text-gray-400 font-mono flex items-center space-x-1">
+                                                    <span>${t.chain}</span>
+                                                    ${t.contract && t.contract !== 'native' ? `<span class="text-[8px] text-gray-600">(${t.contract.substring(0, 6)}...)</span>` : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5 px-3 font-mono text-gray-300">
+                                        ${priceFormatted}
+                                    </td>
+                                    <td class="py-2.5 px-3 font-mono text-gray-200">
+                                        ${amountFormatted}
+                                    </td>
+                                    <td class="py-2.5 px-3 text-right font-mono font-bold text-white">
+                                        ${usdFormatted}
+                                    </td>
+                                    <td class="py-2.5 px-3 text-center">
+                                        <button type="button" onclick="importSingleScannedPosition(${cachedIdx >= 0 ? cachedIdx : 0})" title="Импортировать в портфель" class="px-2.5 py-1 rounded bg-white/[0.05] hover:bg-emerald-600/30 text-gray-300 hover:text-emerald-300 border border-white/[0.08] hover:border-emerald-500/30 text-[10px] font-medium transition-all cursor-pointer inline-flex items-center space-x-1">
+                                            <i data-lucide="plus" class="w-3 h-3"></i>
+                                            <span>В портфель</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            `;
+        }
+
+        // ──────────────────────────────────────────────
+        // 3. DEFI PROTOCOLS SECTION (Lending / Borrow / DEX LP)
+        // ──────────────────────────────────────────────
+        const protocolPositions = data.protocol_positions || [];
+
+        if (protocolPositions.length > 0) {
+            sectionsHtml += `
+            <div class="rounded-xl border border-white/[0.08] bg-[#070b14] p-4 shadow-lg space-y-3" id="debankProtocolsCard">
+                <div class="flex items-center justify-between pb-2.5 border-b border-white/[0.06]">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i>
+                        <h3 class="text-sm font-bold text-white">DeFi Протоколы (Lending / Borrow / DEX LP)</h3>
+                        <span class="text-[10px] font-mono text-gray-400 bg-white/[0.05] px-2 py-0.5 rounded">${protocolPositions.length} позиций</span>
+                    </div>
+                    <div class="text-sm font-bold font-mono text-purple-300">
+                        $${protocolPositions.reduce((acc, p) => acc + (p.current_value_usd || p.amount_usd || 0), 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" id="debankProtocolsGrid">
+                    ${protocolPositions.map(p => {
+                        const isLp = p.position_type === 'liquidity_pool' || p.position_type === 'lp';
+                        const isBorrow = p.position_type === 'borrow';
+                        const badgeClass = isBorrow 
+                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
+                            : (isLp ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30');
+                        const typeText = isBorrow ? 'BORROW' : (isLp ? 'LP v3' : 'SUPPLY');
+
+                        const initialDepositVal = p.initial_deposit_usd !== undefined ? p.initial_deposit_usd : (p.initial_value_usd || p.amount_usd);
+                        const currentVal = p.current_value_usd !== undefined ? p.current_value_usd : p.amount_usd;
+                        const netPnlVal = p.net_pnl_usd !== undefined ? p.net_pnl_usd : 0.0;
+                        const netPnlPct = p.net_pnl_pct !== undefined ? p.net_pnl_pct : 0.0;
+                        const pnlClass = netPnlVal >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                        const pnlSign = netPnlVal >= 0 ? '+' : '';
+
+                        const cachedIdx = scannedPositionsCache.findIndex(cached => cached === p || (cached.protocol === p.protocol && cached.asset === p.asset && cached.chain === p.chain));
+
+                        return `
+                        <div class="p-3.5 rounded-xl bg-[#080c16] border border-white/[0.08] relative hover:border-purple-500/40 transition-all space-y-2.5 shadow-md flex flex-col justify-between protocol-card" data-chain="${p.chain}">
+                            <div>
+                                <div class="flex items-center justify-between pb-2 border-b border-white/[0.05]">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-6 h-6 rounded bg-purple-500/15 border border-purple-500/30 flex items-center justify-center font-mono font-bold text-[10px] text-purple-300">
+                                            ${(p.protocol || '').substring(0, 2).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <div class="text-xs font-bold text-white capitalize leading-tight">${p.protocol}</div>
+                                            <div class="text-[10px] font-mono text-gray-400">${p.chain}</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="text-right">
+                                            <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${badgeClass}">${typeText}</span>
+                                            <div class="text-[9px] font-mono text-emerald-400 mt-0.5">${p.current_apy}% APY</div>
+                                        </div>
+                                        <button type="button" onclick="importSingleScannedPosition(${cachedIdx >= 0 ? cachedIdx : 0})" title="Импортировать в портфель" class="p-1 rounded bg-white/[0.05] hover:bg-emerald-600/30 text-gray-400 hover:text-emerald-300 border border-white/[0.08] transition-all cursor-pointer">
+                                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2 pt-2 text-xs">
+                                    <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
+                                        <div class="text-[9px] uppercase font-semibold text-gray-400">Начальный депозит</div>
+                                        <div class="text-xs font-bold font-mono text-white mt-0.5">$${Number(initialDepositVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                                        <div class="text-[9px] font-mono text-gray-400 truncate">${p.initial_deposit_tokens || p.asset}</div>
+                                    </div>
+                                    <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
+                                        <div class="text-[9px] uppercase font-semibold text-gray-400">Текущая стоимость</div>
+                                        <div class="text-xs font-bold font-mono text-white mt-0.5">$${Number(currentVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+                                        <div class="text-[9px] font-mono text-teal-300 truncate">${p.current_tokens_display || p.asset}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 border-t border-white/[0.06] mt-1 flex items-center justify-between">
+                                <span class="text-[10px] uppercase font-semibold text-gray-400">Прирост капитала:</span>
+                                <span class="text-xs font-bold font-mono ${pnlClass}">
+                                    ${pnlSign}$${Number(netPnlVal).toFixed(2)} (${pnlSign}${netPnlPct}%)
+                                </span>
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+            `;
+        } else {
+            // Clean DeBank Empty Protocol Banner
             sectionsHtml += `
             <div class="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
                 <div class="flex items-center space-x-3">
@@ -1359,7 +2044,7 @@
                             <span class="text-[9px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-mono font-medium">0 активных позиций</span>
                         </div>
                         <div class="text-[11px] text-gray-400 mt-0.5">
-                            В протоколах Lending (Aave, Spark) и DEX LP активных депозитов нет. Все обнаруженные активы находятся на балансе кошелька.
+                            В протоколах Lending (Aave, Spark) и DEX LP активных депозитов нет ($0.00). Все обнаруженные активы находятся на балансе кошелька.
                         </div>
                     </div>
                 </div>
@@ -1371,162 +2056,9 @@
             `;
         }
 
-        // Section 2: Chain Summaries & Positions
-        const chainSummaries = data.chain_summaries && data.chain_summaries.length > 0 ? data.chain_summaries : [];
-        if (chainSummaries.length > 0) {
-            sectionsHtml += chainSummaries.map(cs => {
-                const colors = chainBadgeColors[cs.chain] || { bg: 'bg-gray-500/15', text: 'text-gray-300', border: 'border-gray-500/30', dot: 'bg-gray-400' };
-                const chainPnlClass = cs.net_pnl_usd >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                const chainPnlSign = cs.net_pnl_usd >= 0 ? '+' : '';
-
-                const cardsHtml = cs.positions.map(p => {
-                    const isLp = p.position_type === 'liquidity_pool' || p.position_type === 'lp';
-                    const isBorrow = p.position_type === 'borrow';
-                    const isWalletHolding = p.protocol === 'Wallet Holding';
-                    const badgeClass = isBorrow 
-                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' 
-                        : (isLp ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' : (isWalletHolding ? 'bg-sky-500/20 text-sky-300 border-sky-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'));
-                    const typeText = isBorrow ? 'BORROW' : (isLp ? 'LP v3' : (isWalletHolding ? 'WALLET' : 'SUPPLY'));
-
-                    const initialDepositVal = p.initial_deposit_usd !== undefined ? p.initial_deposit_usd : (p.initial_value_usd || p.amount_usd);
-                    const currentVal = p.current_value_usd !== undefined ? p.current_value_usd : p.amount_usd;
-                    const netPnlVal = p.net_pnl_usd !== undefined ? p.net_pnl_usd : 0.0;
-                    const netPnlPct = p.net_pnl_pct !== undefined ? p.net_pnl_pct : 0.0;
-                    const pnlClass = netPnlVal >= 0 ? 'text-emerald-400' : 'text-rose-400';
-                    const pnlSign = netPnlVal >= 0 ? '+' : '';
-
-                    const initialTokensDisplay = p.initial_deposit_tokens 
-                        || (isLp && p.entry_amount_a ? `${p.entry_amount_a} + ${p.entry_amount_b}` : `${p.entry_amount_a || ''} ${p.asset}`);
-                    const currentTokensDisplay = p.current_tokens_display 
-                        || (isLp && p.current_amount_a ? `${p.current_amount_a} + ${p.current_amount_b}` : `${p.current_amount_a || ''} ${p.asset}`);
-                    const dateDisplay = p.deposit_date_display || (p.entry_date ? `${p.entry_date} · ${p.days_held || 0} дн. назад` : 'Недавно');
-
-                    const globalPosIndex = scannedPositionsCache.findIndex(cached => cached === p || (cached.protocol === p.protocol && cached.asset === p.asset && cached.chain === p.chain));
-
-                    return `
-                    <div class="p-3.5 rounded-xl bg-[#080c16] border border-white/[0.08] relative hover:border-sky-500/40 transition-all space-y-2.5 shadow-md flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between pb-2 border-b border-white/[0.05]">
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-6 h-6 rounded bg-white/[0.05] border border-white/[0.1] flex items-center justify-center font-mono font-bold text-[10px] text-white">
-                                        ${(p.protocol || '').substring(0, 2).toUpperCase()}
-                                    </div>
-                                    <div>
-                                        <div class="text-xs font-bold text-white capitalize leading-tight">${p.protocol}</div>
-                                        <div class="text-[10px] font-mono font-semibold text-teal-300">${p.asset}</div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <div class="text-right">
-                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${badgeClass}">${typeText}</span>
-                                        ${!isWalletHolding ? `<div class="text-[9px] font-mono text-emerald-400 mt-0.5">${p.current_apy}% APY</div>` : ''}
-                                    </div>
-                                    <button type="button" onclick="importSingleScannedPosition(${globalPosIndex >= 0 ? globalPosIndex : 0})" title="Импортировать в портфель" class="p-1 rounded bg-white/[0.05] hover:bg-emerald-600/30 text-gray-400 hover:text-emerald-300 border border-white/[0.08] transition-all cursor-pointer">
-                                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Initial vs When -->
-                            <div class="grid grid-cols-2 gap-2 pt-2">
-                                <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
-                                    <div class="text-[9px] uppercase font-semibold text-gray-400 flex items-center space-x-1">
-                                        <span>📥</span>
-                                        <span>${isWalletHolding ? 'Баланс токена' : 'Сколько добавлялось'}</span>
-                                    </div>
-                                    <div class="text-xs font-bold font-mono text-white mt-0.5">
-                                        $${Number(initialDepositVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                    </div>
-                                    <div class="text-[9px] font-mono text-gray-400 truncate" title="${initialTokensDisplay}">
-                                        ${initialTokensDisplay}
-                                    </div>
-                                </div>
-
-                                <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
-                                    <div class="text-[9px] uppercase font-semibold text-gray-400 flex items-center space-x-1">
-                                        <span>⏳</span>
-                                        <span>${isWalletHolding ? 'Статус сети' : 'Когда (Депозит)'}</span>
-                                    </div>
-                                    <div class="text-xs font-semibold text-gray-200 mt-0.5 truncate" title="${dateDisplay}">
-                                        ${dateDisplay}
-                                    </div>
-                                    <div class="text-[9px] text-gray-500 font-mono">
-                                        ${p.entry_date || ''}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Current Value & Details -->
-                            <div class="grid grid-cols-2 gap-2 pt-1">
-                                <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
-                                    <div class="text-[9px] uppercase font-semibold text-gray-400 flex items-center space-x-1">
-                                        <span>💎</span>
-                                        <span>Текущая ст-ть</span>
-                                    </div>
-                                    <div class="text-xs font-bold font-mono text-white mt-0.5">
-                                        $${Number(currentVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                    </div>
-                                    <div class="text-[9px] font-mono text-teal-300 truncate" title="${currentTokensDisplay}">
-                                        ${currentTokensDisplay}
-                                    </div>
-                                </div>
-
-                                <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
-                                    <div class="text-[9px] uppercase font-semibold text-gray-400">
-                                        ${isWalletHolding ? 'Тип актива' : (isBorrow ? 'Накопл. долг' : (isLp ? 'Комиссии пула' : 'Накопл. доход'))}
-                                    </div>
-                                    <div class="text-xs font-bold font-mono ${isBorrow ? 'text-rose-400' : 'text-teal-300'} mt-0.5">
-                                        ${isWalletHolding ? 'Баланс кошелька' : (isBorrow ? '-' : '+') + '$' + Number(isBorrow ? p.borrow_debt_usd : (isLp ? p.fee_earnings_usd : p.earned_yield_usd)).toFixed(2)}
-                                    </div>
-                                    <div class="text-[9px] font-mono text-gray-500 truncate" title="${p.notes || ''}">
-                                        ${p.notes || ''}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Capital Growth Banner -->
-                        <div class="pt-2 border-t border-white/[0.06] mt-1">
-                            <div class="p-2 rounded-lg bg-gradient-to-r ${netPnlVal >= 0 ? 'from-emerald-950/40 to-teal-950/20 border border-emerald-500/30' : 'from-rose-950/40 to-red-950/20 border border-rose-500/30'} flex items-center justify-between">
-                                <span class="text-[10px] uppercase font-semibold text-gray-300 flex items-center space-x-1">
-                                    <span>${netPnlVal >= 0 ? '📈' : '📉'}</span>
-                                    <span>${isWalletHolding ? 'Стоимость в сети:' : 'Общий прирост капитала:'}</span>
-                                </span>
-                                <span class="text-xs font-bold font-mono ${isWalletHolding ? 'text-white' : pnlClass}">
-                                    ${isWalletHolding ? '$' + Number(currentVal).toFixed(2) : pnlSign + '$' + Number(netPnlVal).toFixed(2) + ' (' + pnlSign + netPnlPct + '%)'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    `;
-                }).join('');
-
-                return `
-                <div class="rounded-xl border border-white/[0.08] bg-[#070b14]/90 p-3 sm:p-4 space-y-3">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-2.5 border-b border-white/[0.06] gap-2">
-                        <div class="flex items-center space-x-2">
-                            <span class="w-2.5 h-2.5 rounded-full ${colors.dot}"></span>
-                            <span class="text-xs sm:text-sm font-bold text-white tracking-wide">${cs.chain}</span>
-                            <span class="px-2 py-0.2 rounded-full text-[9px] font-mono font-medium border ${colors.bg} ${colors.text} ${colors.border}">
-                                ${cs.positions_count} поз.
-                            </span>
-                        </div>
-                        <div class="flex items-center space-x-3 text-xs font-mono">
-                            <div class="text-gray-400 text-[11px]">
-                                Баланс сети: <span class="text-white font-bold">$${Number(cs.current_value_usd || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5">
-                        ${cardsHtml}
-                    </div>
-                </div>
-                `;
-            }).join('');
-        }
-
-        // Section 3: Recent On-Chain Transactions (DeBank & Block Explorers)
+        // ──────────────────────────────────────────────
+        // 4. RECENT ON-CHAIN ACTIVITY (DeBank & Explorers)
+        // ──────────────────────────────────────────────
         if (data.recent_transactions && data.recent_transactions.length > 0) {
             sectionsHtml += `
             <div class="rounded-xl border border-white/[0.08] bg-[#070b14]/90 p-3 sm:p-4 space-y-3 shadow-lg">
@@ -1570,6 +2102,64 @@
 
         list.innerHTML = sectionsHtml;
         lucide.createIcons();
+    }
+
+    // ──────────────────────────────────────────────
+    //  DEBANK CHAIN FILTERING FUNCTION
+    // ──────────────────────────────────────────────
+
+    function filterScanChain(chain) {
+        currentScanChainFilter = chain;
+
+        // Update active pill
+        document.querySelectorAll('.debank-chain-pill').forEach(p => {
+            if (p.dataset.chain === chain) {
+                p.classList.add('bg-sky-500/20', 'text-sky-300', 'border-sky-500/40', 'active');
+                p.classList.remove('bg-[#0b0f19]', 'text-gray-300', 'border-white/[0.08]');
+            } else {
+                p.classList.remove('bg-sky-500/20', 'text-sky-300', 'border-sky-500/40', 'active');
+                p.classList.add('bg-[#0b0f19]', 'text-gray-300', 'border-white/[0.08]');
+            }
+        });
+
+        // Filter token rows
+        const tokenRows = document.querySelectorAll('.token-row');
+        let visibleTokensCount = 0;
+        let visibleTokensTotal = 0;
+
+        tokenRows.forEach(row => {
+            if (chain === 'all' || row.dataset.chain === chain) {
+                row.style.display = '';
+                visibleTokensCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Filter protocol cards
+        const protoCards = document.querySelectorAll('.protocol-card');
+        protoCards.forEach(card => {
+            if (chain === 'all' || card.dataset.chain === chain) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Recalculate Wallet total for filtered chain if scanned data present
+        if (currentScannedData && currentScannedData.wallet_tokens) {
+            const filteredTokens = chain === 'all' 
+                ? currentScannedData.wallet_tokens 
+                : currentScannedData.wallet_tokens.filter(t => t.chain === chain);
+
+            visibleTokensTotal = filteredTokens.reduce((acc, t) => acc + (t.value_usd || 0), 0);
+
+            const countBadge = document.getElementById('debankTokensCount');
+            if (countBadge) countBadge.innerText = `${filteredTokens.length} токенов`;
+
+            const totalValElem = document.getElementById('debankWalletTotalVal');
+            if (totalValElem) totalValElem.innerText = '$' + Number(visibleTokensTotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
     }
 
     async function importSingleScannedPosition(idx) {

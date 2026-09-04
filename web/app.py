@@ -21,13 +21,15 @@ from data.database import (
     get_user_portfolio, add_portfolio_position,
     update_portfolio_position, delete_portfolio_position, get_portfolio_summary,
     get_distinct_chains, get_distinct_protocols, get_distinct_assets,
-    search_pools_for_autocomplete
+    search_pools_for_autocomplete,
+    get_curated_wallets, get_curated_wallet_by_address,
+    add_curated_wallet, delete_curated_wallet, update_curated_wallet_ai
 )
-from data.wallet_scanner import scan_wallet_positions, SUPPORTED_EVM_CHAINS, ALL_SUPPORTED_CHAINS
+from data.wallet_scanner import scan_wallet_positions, SUPPORTED_EVM_CHAINS, ALL_SUPPORTED_CHAINS, validate_address
 from data.metrics_engine import get_enriched_pools, get_market_overview, calculate_pool_metrics
 from data.snapshot_worker import fetch_and_store_snapshots
 from advisor.rebalance_advisor import evaluate_rebalance
-from ai_handler import generate_rebalance_advice, generate_portfolio_advice
+from ai_handler import generate_rebalance_advice, generate_portfolio_advice, generate_curated_wallet_summary
 from defi_engine import get_category, get_protocol_url, normalize_stable_symbol
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -199,6 +201,7 @@ async def view_portfolio(
     chains = get_distinct_chains()
     protocols = get_distinct_protocols()
     assets = get_distinct_assets()
+    curated_wallets = get_curated_wallets()
     return templates.TemplateResponse(
         request=request,
         name="portfolio.html",
@@ -208,6 +211,7 @@ async def view_portfolio(
             "chains": chains,
             "protocols": protocols,
             "assets": assets,
+            "curated_wallets": curated_wallets,
             "evm_chains": SUPPORTED_EVM_CHAINS,
             "all_chains": ALL_SUPPORTED_CHAINS,
             "active_tab": "portfolio",
@@ -392,6 +396,20 @@ class WalletScanRequest(BaseModel):
 class WalletImportRequest(BaseModel):
     user_id: str = "default_user"
     positions: List[PortfolioPositionRequest]
+
+
+class CuratedWalletAddRequest(BaseModel):
+    address: str
+    label: str
+    strategy_type: str = "Концентрированная ликвидность & Стратегии китов"
+    revert_url: Optional[str] = None
+    debank_url: Optional[str] = None
+    chains: str = ""
+    protocols: str = ""
+    tags: str = ""
+    estimated_tvl: str = "Unknown"
+    ai_summary: Optional[str] = None
+    generate_ai: bool = True
 
 
 @app.get("/api/portfolio")
@@ -582,6 +600,96 @@ async def api_evaluate_portfolio(user_id: str = Query("default_user")):
         "summary": summary,
         "positions": positions,
         "ai_advice": advice
+    }
+
+
+# ──────────────────────────────────────────────
+#  CURATED WALLETS (ИНТЕРЕСНЫЕ КОШЕЛЬКИ) API
+# ──────────────────────────────────────────────
+
+@app.get("/api/curated-wallets")
+async def api_get_curated_wallets():
+    wallets = get_curated_wallets()
+    return {
+        "status": "success",
+        "count": len(wallets),
+        "wallets": wallets
+    }
+
+
+@app.post("/api/curated-wallets")
+async def api_add_curated_wallet(req: CuratedWalletAddRequest):
+    val = validate_address(req.address)
+    if not val["valid"]:
+        return JSONResponse(status_code=400, content={"status": "error", "message": val.get("error", "Неверный адрес")})
+
+    addr = val["address"]
+    ai_text = req.ai_summary or ""
+
+    if req.generate_ai and not ai_text:
+        ai_text = generate_curated_wallet_summary(
+            address=addr,
+            label=req.label,
+            strategy_type=req.strategy_type,
+            chains=req.chains,
+            protocols=req.protocols
+        )
+
+    new_id = add_curated_wallet(
+        address=addr,
+        label=req.label,
+        strategy_type=req.strategy_type,
+        revert_url=req.revert_url,
+        debank_url=req.debank_url,
+        chains=req.chains,
+        protocols=req.protocols,
+        ai_summary=ai_text,
+        tags=req.tags,
+        estimated_tvl=req.estimated_tvl
+    )
+
+    wallets = get_curated_wallets()
+    return {
+        "status": "success",
+        "id": new_id,
+        "wallet": get_curated_wallet_by_address(addr),
+        "wallets": wallets
+    }
+
+
+@app.delete("/api/curated-wallets/{wallet_id}")
+async def api_delete_curated_wallet(wallet_id: int):
+    deleted = delete_curated_wallet(wallet_id=wallet_id)
+    wallets = get_curated_wallets()
+    return {
+        "status": "success" if deleted else "not_found",
+        "deleted": wallet_id if deleted else None,
+        "wallets": wallets
+    }
+
+
+@app.post("/api/curated-wallets/{wallet_id}/refresh-ai")
+async def api_refresh_curated_wallet_ai(wallet_id: int):
+    wallets = get_curated_wallets()
+    target = next((w for w in wallets if w["id"] == wallet_id), None)
+    if not target:
+        return JSONResponse(status_code=404, content={"status": "error", "message": "Кошелек не найден"})
+
+    new_summary = generate_curated_wallet_summary(
+        address=target["address"],
+        label=target["label"],
+        strategy_type=target["strategy_type"],
+        chains=target.get("chains", ""),
+        protocols=target.get("protocols", "")
+    )
+    update_curated_wallet_ai(wallet_id=wallet_id, ai_summary=new_summary)
+    updated_wallets = get_curated_wallets()
+    updated_target = next((w for w in updated_wallets if w["id"] == wallet_id), None)
+
+    return {
+        "status": "success",
+        "wallet": updated_target,
+        "wallets": updated_wallets
     }
 
 

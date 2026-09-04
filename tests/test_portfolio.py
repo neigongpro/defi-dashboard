@@ -475,3 +475,110 @@ def test_polygon_hyperliquid_scan_matches_debank():
     assert any(t["symbol"] == "USDT0" and t["balance"] > 700.0 for t in hl_tokens)
 
 
+def test_curated_wallets_database(test_db):
+    """Verify curated wallets database operations, seed wallets, and CRUD."""
+    from data.database import (
+        get_curated_wallets, get_curated_wallet_by_address,
+        add_curated_wallet, delete_curated_wallet, update_curated_wallet_ai
+    )
+
+    wallets = get_curated_wallets(db_path=test_db)
+    assert len(wallets) >= 3
+
+    # Verify user's Revert LP Whale wallet is in seed
+    revert_wallet = next((w for w in wallets if "0x47d06a6d5e3f4e738dea3e8df98a4525499f7619" in w["address"].lower()), None)
+    assert revert_wallet is not None
+    assert "revert.finance" in revert_wallet["revert_url"]
+    assert "debank.com" in revert_wallet["debank_url"]
+    assert len(revert_wallet["ai_summary"]) > 20
+
+    # Add custom curated wallet
+    new_id = add_curated_wallet(
+        address="0x28c6c06298d514db089934071355e5743bf21d60",
+        label="Binance Hot Wallet 14",
+        strategy_type="Exchange Liquidity Hub",
+        chains="Ethereum, BSC",
+        protocols="Uniswap, PancakeSwap",
+        ai_summary="Тестовый аудит стратегии",
+        estimated_tvl="$50M+",
+        db_path=test_db
+    )
+    assert new_id > 0
+
+    fetched = get_curated_wallet_by_address("0x28c6c06298d514db089934071355e5743bf21d60", db_path=test_db)
+    assert fetched is not None
+    assert fetched["label"] == "Binance Hot Wallet 14"
+
+    # Update AI summary
+    updated = update_curated_wallet_ai(new_id, "Обновленное резюме от нейросети", db_path=test_db)
+    assert updated is True
+    updated_fetched = get_curated_wallet_by_address("0x28c6c06298d514db089934071355e5743bf21d60", db_path=test_db)
+    assert updated_fetched["ai_summary"] == "Обновленное резюме от нейросети"
+
+    # Delete
+    deleted = delete_curated_wallet(new_id, db_path=test_db)
+    assert deleted is True
+    assert get_curated_wallet_by_address("0x28c6c06298d514db089934071355e5743bf21d60", db_path=test_db) is None
+
+
+def test_curated_wallets_api():
+    """Verify REST API endpoints for curated wallets."""
+    # 1. GET /api/curated-wallets
+    resp = client.get("/api/curated-wallets")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "success"
+    assert data["count"] >= 3
+    assert any("0x47d06a6d5e3f4e738dea3e8df98a4525499f7619" in w["address"].lower() for w in data["wallets"])
+
+    # 2. POST /api/curated-wallets (add wallet with AI generation)
+    test_addr = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"  # USDC contract as dummy EVM address
+    add_resp = client.post("/api/curated-wallets", json={
+        "address": test_addr,
+        "label": "USDC Treasury Whale",
+        "strategy_type": "Stablecoin Collateral",
+        "chains": "Ethereum",
+        "protocols": "Aave v3, MakerDAO",
+        "generate_ai": True
+    })
+    assert add_resp.status_code == 200
+    add_data = add_resp.json()
+    assert add_data["status"] == "success"
+    wallet_id = add_data["id"]
+    assert wallet_id > 0
+    assert len(add_data["wallet"]["ai_summary"]) > 10
+
+    # 3. POST /api/curated-wallets/{id}/refresh-ai
+    refresh_resp = client.post(f"/api/curated-wallets/{wallet_id}/refresh-ai")
+    assert refresh_resp.status_code == 200
+    refresh_data = refresh_resp.json()
+    assert refresh_data["status"] == "success"
+    assert len(refresh_data["wallet"]["ai_summary"]) > 10
+
+    # 4. DELETE /api/curated-wallets/{id}
+    del_resp = client.delete(f"/api/curated-wallets/{wallet_id}")
+    assert del_resp.status_code == 200
+    assert del_resp.json()["status"] == "success"
+
+
+def test_portfolio_page_contains_curated_wallets_and_debank_elements():
+    """Verify the /portfolio page renders DeBank elements and Curated Wallets modal."""
+    resp = client.get("/portfolio")
+    assert resp.status_code == 200
+    html = resp.text
+
+    # Must contain Curated Wallets button and modal
+    assert "Интересные кошельки" in html
+    assert "curatedWalletsModal" in html
+    assert "0x47d06a6d5e3f4e738dea3e8df98a4525499f7619" in html
+    assert "revert.finance" in html
+    assert "debank.com" in html
+
+    # Must contain auto-chain detection logic
+    assert "onWalletAddressInput" in html
+    assert "ecosystemDetectBadge" in html
+    assert "debank-chain-pill" in html
+    assert "filterScanChain" in html
+
+
+
