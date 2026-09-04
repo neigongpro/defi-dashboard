@@ -294,6 +294,42 @@ def test_wallet_scanner():
     assert "scanned_chains" in res
 
 
+def test_multichain_wallet_scanner_rich_data():
+    all_chains = ["Ethereum", "Arbitrum", "Base", "Optimism", "Polygon", "BSC", "Avalanche", "Sonic", "Solana", "Sui"]
+    res = scan_wallet_positions(
+        address="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+        chains=all_chains
+    )
+    assert res["status"] == "success"
+    assert len(res["positions"]) >= 10
+    assert "chain_summaries" in res
+    assert len(res["chain_summaries"]) >= 8
+    assert "overall_summary" in res
+    assert res["overall_summary"]["total_deposited_usd"] > 0
+    assert res["overall_summary"]["current_value_usd"] > 0
+    assert res["overall_summary"]["chains_count"] >= 8
+
+    # Check that each position has initial deposit and Russian formatted date
+    for p in res["positions"]:
+        assert "initial_deposit_usd" in p
+        assert p["initial_deposit_usd"] > 0
+        assert "deposit_date_display" in p
+        assert "назад" in p["deposit_date_display"] or "сегодня" in p["deposit_date_display"]
+        assert "current_value_usd" in p
+        assert "net_pnl_usd" in p
+        assert "net_pnl_pct" in p
+
+    # Test single-chain scanning gives lending, borrow and LP
+    single_res = scan_wallet_positions(
+        address="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+        chains=["Arbitrum"]
+    )
+    assert single_res["status"] == "success"
+    assert any(p["position_type"] == "lending" for p in single_res["positions"])
+    assert any(p["position_type"] == "borrow" for p in single_res["positions"])
+    assert any(p["position_type"] == "liquidity_pool" for p in single_res["positions"])
+
+
 def test_portfolio_web_endpoints():
     # Test HTML view with boost trigger
     resp = client.get("/portfolio?boost=1")
