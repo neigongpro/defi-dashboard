@@ -415,3 +415,39 @@ def test_portfolio_web_endpoints():
     del_resp = client.delete(f"/api/portfolio/position/{pos_id}?user_id=test_web_user_v2")
     assert del_resp.status_code == 200
     assert del_resp.json()["status"] == "success"
+
+
+def test_user_wallet_scan_matches_debank():
+    """Verify scanning 0xdBbbB030ec24d3B075BFb74637B3D70DE0e620b3 accurately matches DeBank on-chain state."""
+    from data.wallet_scanner import scan_wallet_positions, DASHBOARD_CHAINS
+
+    target_address = "0xdBbbB030ec24d3B075BFb74637B3D70DE0e620b3"
+    res = scan_wallet_positions(target_address, chains=DASHBOARD_CHAINS)
+
+    assert res["status"] == "success"
+    assert res["total_chains_count"] == 28
+    assert len(res["scanned_chains"]) == 28
+
+    # 1. 0 active protocol positions ($0.00 in Lending / LP)
+    assert res["protocol_positions"] == []
+    assert res["has_protocol_positions"] is False
+
+    # 2. Real wallet tokens total value ~$2.75 (range 2.0 to 4.0 depending on live prices)
+    assert 2.0 <= res["total_value_usd"] <= 4.0
+
+    # 3. Chains with balances: Avalanche (AVAX), Arbitrum (ETH), Plasma (XPL & USDT0), Base (ETH)
+    token_chains = {t["chain"] for t in res["wallet_tokens"]}
+    assert "Avalanche" in token_chains
+    assert "Arbitrum" in token_chains
+    assert "Plasma" in token_chains
+    assert "Base" in token_chains
+
+    # 4. Plasma USDT0 token detected
+    usdt0_tokens = [t for t in res["wallet_tokens"] if t["symbol"] == "USDT0"]
+    assert len(usdt0_tokens) == 1
+    assert usdt0_tokens[0]["balance"] == 0.01
+
+    # 5. Recent on-chain transactions detected
+    assert len(res["recent_transactions"]) > 0
+    assert any(tx["chain"] == "Plasma" or "0x1e79" in tx.get("to", "") for tx in res["recent_transactions"])
+
