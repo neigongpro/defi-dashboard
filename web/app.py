@@ -212,7 +212,7 @@ async def view_portfolio(
             "all_chains": ALL_SUPPORTED_CHAINS,
             "active_tab": "portfolio",
             "auto_open_boost": bool(boost),
-            "auto_open_scan": bool(scan)
+            "auto_open_scan": bool(scan) or len(positions) == 0
         }
     )
 

@@ -424,24 +424,24 @@
 </div>
 
 <!-- Modal: 🚀 Boost / Добавить или редактировать позицию -->
-<div id="boostPosModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 overflow-y-auto">
-    <div class="bg-[#0b0f1a] border border-white/[0.14] rounded-2xl max-w-4xl xl:max-w-5xl w-full p-3.5 sm:p-4.5 shadow-2xl relative max-h-[92vh] flex flex-col my-auto" onclick="event.stopPropagation()">
+<div id="boostPosModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-3 overflow-y-auto">
+    <div class="bg-[#0b0f1a] border border-white/[0.14] rounded-2xl w-[96vw] max-w-5xl xl:max-w-6xl 2xl:max-w-7xl p-3 sm:p-4 shadow-2xl relative max-h-[88vh] flex flex-col my-auto" onclick="event.stopPropagation()">
         <!-- Modal Header (Fixed Top) -->
-        <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-white/[0.08] shrink-0">
-            <div class="flex items-center space-x-2.5">
-                <div class="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                    <i data-lucide="zap" class="w-4 h-4"></i>
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/[0.08] shrink-0">
+            <div class="flex items-center space-x-2">
+                <div class="w-6 h-6 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                    <i data-lucide="zap" class="w-3.5 h-3.5"></i>
                 </div>
                 <div>
                     <h3 class="text-xs sm:text-sm font-bold text-white tracking-wide" id="modalTitle">🚀 Boost Позиции: Автозаполнение & Математика PnL</h3>
-                    <p class="text-[10px] text-gray-400">Автоматический расчёт доходности, IL и чистого прироста капитала из 5,145 пулов</p>
+                    <p class="text-[10px] text-gray-400 hidden sm:block">Автоматический расчёт доходности, IL и чистого прироста капитала из 5,145 пулов</p>
                 </div>
             </div>
             <button onclick="closeBoostModal()" class="text-gray-400 hover:text-white p-1 text-sm cursor-pointer transition-colors" title="Закрыть">✕</button>
         </div>
 
         <!-- Position Type Selector Tabs (Fixed Top) -->
-        <div class="grid grid-cols-3 gap-1.5 p-1 bg-[#06080e] rounded-lg border border-white/[0.06] mb-2.5 text-center text-xs font-medium shrink-0">
+        <div class="grid grid-cols-3 gap-1 p-0.5 bg-[#06080e] rounded-lg border border-white/[0.06] mb-2 text-center text-xs font-medium shrink-0">
             <button type="button" onclick="setPosType('lending')" id="tabLending" class="py-1 rounded-md transition-all cursor-pointer bg-emerald-600/25 text-emerald-300 border border-emerald-500/40">
                 🏦 Кредитование (Supply)
             </button>
@@ -459,17 +459,17 @@
             <input type="hidden" id="formPoolId" value="">
             <input type="hidden" id="formEditPosId" value="">
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 flex-1 overflow-y-auto pr-1">
-                <!-- Column 1: Left / Inputs (7 cols) -->
-                <div class="lg:col-span-7 space-y-2.5">
-                    <!-- Autocomplete Selectors: Chain, Protocol, Asset -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 flex-1 overflow-y-auto pr-1">
+                <!-- Column 1: Left / Inputs (7 cols on md, 8 cols on xl) -->
+                <div class="md:col-span-7 xl:col-span-8 space-y-2">
+                    <!-- Row 1: Chain, Protocol, Asset / Pool -->
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <!-- Chain Selector -->
                         <div class="relative">
                             <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Сеть (25+ Chains)</label>
                             <input type="text" id="formChainInput" autocomplete="off" placeholder="Напр. Arbitrum..." required
                                    oninput="onChainInput(this.value)" onfocus="showChainDropdown()"
-                                   class="w-full bg-[#06080f] text-gray-100 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-emerald-500 text-xs font-medium">
+                                   class="w-full bg-[#06080f] text-gray-100 rounded px-2.5 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 text-xs font-medium">
                             <div id="chainDropdown" class="hidden absolute left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto bg-[#0d1017] border border-white/[0.1] rounded-lg shadow-2xl z-40 divide-y divide-white/[0.03]"></div>
                         </div>
 
@@ -478,7 +478,7 @@
                             <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Протокол</label>
                             <input type="text" id="formProtocolInput" autocomplete="off" placeholder="Aave, Morpho, Uni..." required
                                    oninput="onProtocolInput(this.value)" onfocus="showProtocolDropdown()"
-                                   class="w-full bg-[#06080f] text-gray-100 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-emerald-500 text-xs font-medium">
+                                   class="w-full bg-[#06080f] text-gray-100 rounded px-2.5 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 text-xs font-medium">
                             <div id="protocolDropdown" class="hidden absolute left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto bg-[#0d1017] border border-white/[0.1] rounded-lg shadow-2xl z-40 divide-y divide-white/[0.03]"></div>
                         </div>
 
@@ -487,169 +487,163 @@
                             <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Актив / Пул</label>
                             <input type="text" id="formAssetInput" autocomplete="off" placeholder="USDC, ETH-USDC..." required
                                    oninput="onAssetInput(this.value)" onfocus="showAssetDropdown()"
-                                   class="w-full bg-[#06080f] text-gray-100 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs font-semibold">
+                                   class="w-full bg-[#06080f] text-gray-100 rounded px-2.5 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs font-semibold">
                             <div id="assetDropdown" class="hidden absolute left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-[#0d1017] border border-white/[0.1] rounded-lg shadow-2xl z-40 divide-y divide-white/[0.03]"></div>
                         </div>
                     </div>
 
-                    <!-- Date Picker for Entry Date & Auto-filled APY -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <!-- Row 2: Date, APY, and Notes -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <div>
                             <div class="flex items-center justify-between mb-0.5">
-                                <label class="text-[9px] uppercase font-semibold text-gray-400">Дата входа в позицию</label>
-                                <div class="flex items-center space-x-1 text-[9px] text-gray-500">
-                                    <a href="javascript:setQuickDate(0)" class="hover:text-emerald-400">Сегодня</a>
+                                <label class="text-[9px] uppercase font-semibold text-gray-400">Дата входа</label>
+                                <div class="flex items-center space-x-1 text-[9px] text-gray-500 font-mono">
+                                    <a href="javascript:setQuickDate(0)" class="hover:text-emerald-400">0д</a>
                                     <span>•</span>
                                     <a href="javascript:setQuickDate(30)" class="hover:text-emerald-400">30д</a>
                                     <span>•</span>
                                     <a href="javascript:setQuickDate(90)" class="hover:text-emerald-400">90д</a>
                                 </div>
                             </div>
-                            <input type="date" id="formEntryDate" onchange="recalculateModalMath()" required class="w-full bg-[#06080f] text-gray-200 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
+                            <input type="date" id="formEntryDate" onchange="recalculateModalMath()" required class="w-full bg-[#06080f] text-gray-200 rounded px-2 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
                         </div>
 
                         <div>
                             <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5 flex items-center justify-between">
-                                <span>Текущая ставка (% APY)</span>
-                                <span class="text-[9px] text-teal-400 font-normal">Автоподтягивание</span>
+                                <span>Ставка (% APY)</span>
+                                <span class="text-[8px] text-teal-400 font-normal">Автоподбор</span>
                             </label>
                             <div class="relative">
-                                <input type="number" id="formApy" min="0" max="500" step="0.01" required placeholder="5.5" oninput="recalculateModalMath()" class="w-full bg-[#06080f] text-gray-100 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs font-semibold">
-                                <span class="absolute right-2.5 top-1.5 text-[11px] font-mono text-gray-500">%</span>
+                                <input type="number" id="formApy" min="0" max="500" step="0.01" required placeholder="5.5" oninput="recalculateModalMath()" class="w-full bg-[#06080f] text-gray-100 rounded px-2.5 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs font-semibold">
+                                <span class="absolute right-2 top-1.5 text-[11px] font-mono text-gray-500">%</span>
                             </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Заметка / Кошелек</label>
+                            <input type="text" id="formNotes" placeholder="Ledger, Safe, Vault..." class="w-full bg-[#06080f] text-gray-200 rounded px-2 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 text-xs">
                         </div>
                     </div>
 
-                    <!-- Supply / Borrow Simple Amount Field (Hidden when LP) -->
-                    <div id="simpleAmountSection" class="space-y-2">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-end">
+                    <!-- Supply / Borrow Simple Amount Section -->
+                    <div id="simpleAmountSection" class="space-y-2 pt-1">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <div>
                                 <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Кол-во токенов (опц.)</label>
-                                <input type="number" id="formTokenAmount" step="any" placeholder="1.5" oninput="onTokenInputsChanged()" class="w-full bg-[#06080f] text-gray-200 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
+                                <input type="number" id="formTokenAmount" step="any" placeholder="1.5" oninput="onTokenInputsChanged()" class="w-full bg-[#06080f] text-gray-200 rounded px-2.5 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
                             </div>
                             <div>
                                 <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Цена токена ($)</label>
-                                <input type="number" id="formTokenPrice" step="any" placeholder="1.0" oninput="onTokenInputsChanged()" class="w-full bg-[#06080f] text-gray-200 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
+                                <input type="number" id="formTokenPrice" step="any" placeholder="1.0" oninput="onTokenInputsChanged()" class="w-full bg-[#06080f] text-gray-200 rounded px-2.5 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
                             </div>
                             <div>
                                 <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5" id="amountLabel">Капитал ($ USD)</label>
-                                <input type="number" id="formAmount" min="0" step="0.01" placeholder="10000" oninput="onUsdAmountChanged()" class="w-full bg-[#06080f] text-emerald-300 font-bold rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
+                                <input type="number" id="formAmount" min="0" step="0.01" placeholder="10000" oninput="onUsdAmountChanged()" class="w-full bg-[#06080f] text-emerald-300 font-bold rounded px-2.5 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-emerald-500 font-mono text-xs">
                             </div>
-                        </div>
-                        <div>
-                            <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Заметка / Кошелек</label>
-                            <input type="text" id="formNotes" placeholder="Ledger, Safe, Vault..." class="w-full bg-[#06080f] text-gray-200 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-emerald-500 text-xs">
                         </div>
                     </div>
 
-                    <!-- Liquidity Pool (LP v3) Detailed Fields -->
-                    <div id="lpFieldsSection" class="hidden space-y-2">
-                        <div class="flex items-center justify-between pb-1 border-b border-white/[0.05]">
-                            <span class="text-[9px] font-bold text-teal-300 uppercase tracking-wider flex items-center space-x-1">
-                                <i data-lucide="sliders" class="w-3 h-3"></i>
-                                <span>Токены в пуле ликвидности</span>
-                            </span>
-                            <button type="button" onclick="toggleTokenC()" id="tokenCToggleBtn" class="text-[10px] text-teal-400 hover:underline cursor-pointer">
-                                + Добавить 3-й токен (TriCrypto/3pool)
-                            </button>
-                        </div>
+                    <!-- Liquidity Pool (LP v3) Compact Token Matrix Section -->
+                    <div id="lpFieldsSection" class="hidden space-y-2 pt-1">
+                        <div class="rounded-lg bg-[#06080f] border border-white/[0.06] overflow-hidden">
+                            <div class="flex items-center justify-between px-2.5 py-1 bg-white/[0.02] border-b border-white/[0.05]">
+                                <span class="text-[9px] font-bold text-teal-300 uppercase tracking-wider flex items-center space-x-1.5">
+                                    <i data-lucide="layers" class="w-3 h-3"></i>
+                                    <span>Матрица активов в пуле ликвидности</span>
+                                </span>
+                                <button type="button" onclick="toggleTokenC()" id="tokenCToggleBtn" class="text-[10px] text-teal-400 hover:text-teal-300 transition-colors font-medium flex items-center space-x-1 cursor-pointer">
+                                    <span>+ Добавить 3-й токен (Tri-Pool)</span>
+                                </button>
+                            </div>
 
-                        <!-- Token A Compact Box -->
-                        <div class="p-2 rounded-lg bg-[#06080f] border border-white/[0.05] space-y-1">
-                            <div class="grid grid-cols-5 gap-1.5 items-center">
-                                <div class="col-span-1">
-                                    <label class="block text-[8px] text-gray-400 uppercase">Токен A</label>
-                                    <input type="text" id="lpTokenA" placeholder="ETH" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-1 h-7.5 text-[11px] font-mono font-bold border border-white/[0.08]">
+                            <!-- Single-Row Compact Table Header -->
+                            <div class="grid grid-cols-12 gap-1.5 px-2 py-1 text-[8px] font-mono uppercase tracking-wider text-gray-400 border-b border-white/[0.04] bg-white/[0.01]">
+                                <div class="col-span-2">Токен</div>
+                                <div class="col-span-2 text-right">Вход кол-во</div>
+                                <div class="col-span-3 text-right">Вход цена $</div>
+                                <div class="col-span-2 text-right text-teal-300">Сейчас кол-во</div>
+                                <div class="col-span-3 text-right text-teal-300">Сейчас цена $</div>
+                            </div>
+
+                            <!-- Token A Row -->
+                            <div class="grid grid-cols-12 gap-1.5 px-2 py-1 items-center border-b border-white/[0.03]">
+                                <div class="col-span-2">
+                                    <input type="text" id="lpTokenA" placeholder="ETH" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-0.5 h-7 text-xs font-mono font-bold border border-white/[0.08] focus:outline-none focus:border-teal-500">
                                 </div>
-                                <div>
-                                    <label class="block text-[8px] text-gray-400 uppercase">Вход кол-во</label>
-                                    <input type="number" id="lpAmountA" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
+                                <div class="col-span-2">
+                                    <input type="number" id="lpAmountA" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-white/[0.08] focus:outline-none focus:border-teal-500">
                                 </div>
-                                <div>
-                                    <label class="block text-[8px] text-gray-400 uppercase">Вход цена $</label>
-                                    <input type="number" id="lpPriceA" step="any" placeholder="2600" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
+                                <div class="col-span-3">
+                                    <input type="number" id="lpPriceA" step="any" placeholder="2600" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-white/[0.08] focus:outline-none focus:border-teal-500">
                                 </div>
-                                <div>
-                                    <label class="block text-[8px] text-teal-400 uppercase">Сейчас кол-во</label>
-                                    <input type="number" id="lpCurAmountA" step="any" placeholder="0.85" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
+                                <div class="col-span-2">
+                                    <input type="number" id="lpCurAmountA" step="any" placeholder="0.85" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-teal-500/20 focus:outline-none focus:border-teal-500 font-semibold">
                                 </div>
-                                <div>
-                                    <label class="block text-[8px] text-teal-400 uppercase">Сейчас цена $</label>
-                                    <input type="number" id="lpCurPriceA" step="any" placeholder="3150" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
+                                <div class="col-span-3">
+                                    <input type="number" id="lpCurPriceA" step="any" placeholder="3150" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-teal-500/20 focus:outline-none focus:border-teal-500 font-semibold">
+                                </div>
+                            </div>
+
+                            <!-- Token B Row -->
+                            <div class="grid grid-cols-12 gap-1.5 px-2 py-1 items-center">
+                                <div class="col-span-2">
+                                    <input type="text" id="lpTokenB" placeholder="USDC" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-0.5 h-7 text-xs font-mono font-bold border border-white/[0.08] focus:outline-none focus:border-teal-500">
+                                </div>
+                                <div class="col-span-2">
+                                    <input type="number" id="lpAmountB" step="any" placeholder="2600" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-white/[0.08] focus:outline-none focus:border-teal-500">
+                                </div>
+                                <div class="col-span-3">
+                                    <input type="number" id="lpPriceB" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-white/[0.08] focus:outline-none focus:border-teal-500">
+                                </div>
+                                <div class="col-span-2">
+                                    <input type="number" id="lpCurAmountB" step="any" placeholder="3072" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-teal-500/20 focus:outline-none focus:border-teal-500 font-semibold">
+                                </div>
+                                <div class="col-span-3">
+                                    <input type="number" id="lpCurPriceB" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-teal-500/20 focus:outline-none focus:border-teal-500 font-semibold">
+                                </div>
+                            </div>
+
+                            <!-- Token C Row (Hidden by default, toggled) -->
+                            <div id="tokenCRow" class="hidden grid grid-cols-12 gap-1.5 px-2 py-1 items-center border-t border-white/[0.03] bg-teal-500/[0.02]">
+                                <div class="col-span-2">
+                                    <input type="text" id="lpTokenC" placeholder="USDT" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-0.5 h-7 text-xs font-mono font-bold border border-white/[0.08] focus:outline-none focus:border-teal-500">
+                                </div>
+                                <div class="col-span-2">
+                                    <input type="number" id="lpAmountC" step="any" placeholder="0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-white/[0.08] focus:outline-none focus:border-teal-500">
+                                </div>
+                                <div class="col-span-3">
+                                    <input type="number" id="lpPriceC" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-white/[0.08] focus:outline-none focus:border-teal-500">
+                                </div>
+                                <div class="col-span-2">
+                                    <input type="number" id="lpCurAmountC" step="any" placeholder="0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-teal-500/20 focus:outline-none focus:border-teal-500 font-semibold">
+                                </div>
+                                <div class="col-span-3">
+                                    <input type="number" id="lpCurPriceC" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 text-right rounded px-1.5 py-0.5 h-7 text-xs font-mono border border-teal-500/20 focus:outline-none focus:border-teal-500 font-semibold">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Token B Compact Box -->
-                        <div class="p-2 rounded-lg bg-[#06080f] border border-white/[0.05] space-y-1">
-                            <div class="grid grid-cols-5 gap-1.5 items-center">
-                                <div class="col-span-1">
-                                    <label class="block text-[8px] text-gray-400 uppercase">Токен B</label>
-                                    <input type="text" id="lpTokenB" placeholder="USDC" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-1 h-7.5 text-[11px] font-mono font-bold border border-white/[0.08]">
-                                </div>
-                                <div>
-                                    <label class="block text-[8px] text-gray-400 uppercase">Вход кол-во</label>
-                                    <input type="number" id="lpAmountB" step="any" placeholder="2600" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
-                                </div>
-                                <div>
-                                    <label class="block text-[8px] text-gray-400 uppercase">Вход цена $</label>
-                                    <input type="number" id="lpPriceB" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
-                                </div>
-                                <div>
-                                    <label class="block text-[8px] text-teal-400 uppercase">Сейчас кол-во</label>
-                                    <input type="number" id="lpCurAmountB" step="any" placeholder="3072" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
-                                </div>
-                                <div>
-                                    <label class="block text-[8px] text-teal-400 uppercase">Сейчас цена $</label>
-                                    <input type="number" id="lpCurPriceB" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Token C (Optional for 3-asset pools) -->
-                        <div id="tokenCRow" class="hidden p-2 rounded-lg bg-[#06080f] border border-white/[0.05] space-y-1">
-                            <div class="grid grid-cols-5 gap-1.5 items-center">
-                                <div class="col-span-1">
-                                    <label class="block text-[8px] text-gray-400 uppercase">Токен C</label>
-                                    <input type="text" id="lpTokenC" placeholder="USDT" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-1 h-7.5 text-[11px] font-mono font-bold border border-white/[0.08]">
-                                </div>
-                                <div>
-                                    <label class="block text-[8px] text-gray-400 uppercase">Вход кол-во</label>
-                                    <input type="number" id="lpAmountC" step="any" placeholder="0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
-                                </div>
-                                <div>
-                                    <label class="block text-[8px] text-gray-400 uppercase">Вход цена $</label>
-                                    <input type="number" id="lpPriceC" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-white rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
-                                </div>
-                                <div>
-                                    <label class="block text-[8px] text-teal-400 uppercase">Сейчас кол-во</label>
-                                    <input type="number" id="lpCurAmountC" step="any" placeholder="0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
-                                </div>
-                                <div>
-                                    <label class="block text-[8px] text-teal-400 uppercase">Сейчас цена $</label>
-                                    <input type="number" id="lpCurPriceC" step="any" placeholder="1.0" oninput="recalculateModalMath()" class="w-full bg-[#0c101a] text-teal-300 rounded px-1.5 py-1 h-7.5 text-[11px] font-mono border border-white/[0.08]">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Fee Tracker & Notes -->
-                        <div class="grid grid-cols-2 gap-2">
+                        <!-- LP Fees and ID Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Накопленные комиссии ($ USD)</label>
-                                <input type="number" id="lpFeeEarnings" step="0.01" placeholder="0.0" oninput="recalculateModalMath()" class="w-full bg-[#06080f] text-teal-300 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-teal-500 font-mono text-xs font-semibold">
+                                <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5 flex items-center justify-between">
+                                    <span>💰 Накопленные комиссии ($ USD)</span>
+                                    <span class="text-[8px] text-teal-400">Суммируется к PnL</span>
+                                </label>
+                                <input type="number" id="lpFeeEarnings" step="0.01" placeholder="0.0" oninput="recalculateModalMath()" class="w-full bg-[#06080f] text-teal-300 font-bold rounded px-2 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-teal-500 font-mono text-xs">
                             </div>
                             <div>
-                                <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Заметка / ID позиции</label>
-                                <input type="text" id="lpNotes" placeholder="Uniswap v3 NFT #..." class="w-full bg-[#06080f] text-gray-200 rounded px-2.5 py-1 h-8 border border-white/[0.08] focus:outline-none focus:border-teal-500 text-xs">
+                                <label class="block text-[9px] uppercase font-semibold text-gray-400 mb-0.5">Заметка / ID позиции пула</label>
+                                <input type="text" id="lpNotes" placeholder="Uniswap v3 NFT #..., диап. 2200-3500..." class="w-full bg-[#06080f] text-gray-200 rounded px-2 py-1 h-7.5 border border-white/[0.08] focus:outline-none focus:border-teal-500 text-xs">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Column 2: Right / Sticky Live PnL Card & Metrics (5 cols) -->
-                <div class="lg:col-span-5 flex flex-col space-y-2.5">
-                    <div id="liveMathPreview" class="p-3.5 rounded-xl bg-[#060912] border border-white/[0.08] space-y-2.5 font-mono shadow-xl relative">
-                        <div class="flex items-center justify-between pb-2 border-b border-white/[0.06]">
+                <!-- Column 2: Right / Sticky Live PnL Card & Metrics (5 cols on md, 4 cols on xl) -->
+                <div class="md:col-span-5 xl:col-span-4 flex flex-col space-y-2">
+                    <div id="liveMathPreview" class="p-3 rounded-xl bg-[#060912] border border-white/[0.08] space-y-2 font-mono shadow-xl relative">
+                        <div class="flex items-center justify-between pb-1.5 border-b border-white/[0.06]">
                             <span class="text-[10px] font-bold text-gray-200 uppercase tracking-wider flex items-center space-x-1.5">
                                 <i data-lucide="calculator" class="w-3.5 h-3.5 text-emerald-400"></i>
                                 <span>Калькулятор & PnL</span>
@@ -660,7 +654,7 @@
                         </div>
 
                         <!-- Key Metrics Rows -->
-                        <div class="space-y-1.5 text-xs">
+                        <div class="space-y-1 text-xs">
                             <div class="flex items-center justify-between text-gray-400">
                                 <span>Начальная позиция:</span>
                                 <span id="previewEntryVal" class="text-white font-bold font-mono">$0.00</span>
@@ -671,13 +665,13 @@
                                 <span id="previewYieldOrDebtVal" class="text-teal-300 font-semibold font-mono">+$0.00</span>
                             </div>
 
-                            <div id="previewLpDetails" class="hidden space-y-1.5 pt-1.5 border-t border-white/[0.06]">
+                            <div id="previewLpDetails" class="hidden space-y-1 pt-1 border-t border-white/[0.06]">
                                 <div class="flex items-center justify-between text-gray-400">
-                                    <span>Текущая ст-ть пула (LP):</span>
+                                    <span>В пуле (LP сейчас):</span>
                                     <span id="previewCurrentLpVal" class="text-teal-300 font-bold font-mono">$0.00</span>
                                 </div>
                                 <div class="flex items-center justify-between text-gray-400">
-                                    <span>Ст-ть при HODL (без пула):</span>
+                                    <span>Ст-ть при HODL:</span>
                                     <span id="previewHodlVal" class="text-gray-300 font-mono">$0.00</span>
                                 </div>
                                 <div class="flex items-center justify-between text-gray-400">
@@ -688,21 +682,21 @@
                         </div>
 
                         <!-- Net Capital Gain / PnL Highlight Box -->
-                        <div class="p-2.5 rounded-lg bg-gradient-to-br from-[#0b101c] to-[#070b13] border border-emerald-500/30 text-center space-y-0.5">
+                        <div class="p-2 rounded-lg bg-gradient-to-br from-[#0b101c] to-[#070b13] border border-emerald-500/30 text-center space-y-0.5">
                             <div class="text-[9px] uppercase font-semibold text-gray-400">Чистый прирост капитала (Net PnL)</div>
-                            <div id="previewNetPnlVal" class="text-base sm:text-lg font-bold font-mono text-emerald-400">+$0.00 (+0.0%)</div>
+                            <div id="previewNetPnlVal" class="text-sm sm:text-base font-bold font-mono text-emerald-400">+$0.00 (+0.0%)</div>
                         </div>
 
-                        <div class="text-[9px] text-gray-500 leading-normal font-sans pt-1 border-t border-white/[0.04]">
-                            💡 <span class="text-gray-400">Формула:</span> (Текущая стоимость + Комиссии) − Начальный депозит. Учитывает непостоянные потери и изменение цен токенов.
+                        <div class="text-[8.5px] text-gray-500 leading-tight font-sans pt-1 border-t border-white/[0.04]">
+                            💡 <span class="text-gray-400">Формула:</span> (Текущая стоимость + Комиссии) − Начальный депозит. Учитывает IL и изменение курсов.
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Modal Action Buttons (Fixed Bottom) -->
-            <div class="flex items-center justify-end space-x-2.5 pt-2.5 border-t border-white/[0.08] mt-2 shrink-0">
-                <button type="button" onclick="closeBoostModal()" class="px-3.5 py-1.5 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer text-xs font-medium">
+            <div class="flex items-center justify-end space-x-2 pt-2 border-t border-white/[0.08] mt-2 shrink-0">
+                <button type="button" onclick="closeBoostModal()" class="px-3 py-1.5 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer text-xs font-medium">
                     Отмена
                 </button>
                 <button type="submit" id="savePosBtn" class="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-600/25 transition-all cursor-pointer text-xs flex items-center space-x-1.5 active:scale-98">
@@ -1370,81 +1364,104 @@
                     || (isLp && p.current_amount_a ? `${p.current_amount_a} + ${p.current_amount_b}` : `${p.current_amount_a || ''} ${p.asset}`);
                 const dateDisplay = p.deposit_date_display || (p.entry_date ? `${p.entry_date} · ${p.days_held || 0} дн. назад` : 'Недавно');
 
+                const globalPosIndex = scannedPositionsCache.findIndex(cached => cached === p || (cached.protocol === p.protocol && cached.asset === p.asset && cached.chain === p.chain));
+
                 return `
-                <div class="p-3.5 rounded-xl bg-[#080c16] border border-white/[0.08] relative hover:border-sky-500/40 transition-all space-y-2 shadow-md">
-                    <!-- Position Top Bar: Protocol + Asset + Type Badge -->
-                    <div class="flex items-center justify-between pb-1.5 border-b border-white/[0.05]">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 rounded bg-white/[0.05] border border-white/[0.1] flex items-center justify-center font-mono font-bold text-[10px] text-white">
-                                ${(p.protocol || '').substring(0, 2).toUpperCase()}
+                <div class="p-3.5 rounded-xl bg-[#080c16] border border-white/[0.08] relative hover:border-sky-500/40 transition-all space-y-2.5 shadow-md flex flex-col justify-between">
+                    <!-- Position Top Bar: Protocol + Asset + Type Badge + 1-Click Import -->
+                    <div>
+                        <div class="flex items-center justify-between pb-2 border-b border-white/[0.05]">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-6 h-6 rounded bg-white/[0.05] border border-white/[0.1] flex items-center justify-center font-mono font-bold text-[10px] text-white">
+                                    ${(p.protocol || '').substring(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-white capitalize leading-tight">${p.protocol}</div>
+                                    <div class="text-[10px] font-mono font-semibold text-teal-300">${p.asset}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="text-xs font-bold text-white capitalize leading-tight">${p.protocol}</div>
-                                <div class="text-[10px] font-mono font-semibold text-teal-300">${p.asset}</div>
+                            <div class="flex items-center space-x-2">
+                                <div class="text-right">
+                                    <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${badgeClass}">${typeText}</span>
+                                    <div class="text-[9px] font-mono text-emerald-400 mt-0.5">${p.current_apy}% APY</div>
+                                </div>
+                                <button type="button" onclick="importSingleScannedPosition(${globalPosIndex >= 0 ? globalPosIndex : 0})" title="Импортировать эту позицию в портфель" class="p-1 rounded bg-white/[0.05] hover:bg-emerald-600/30 text-gray-400 hover:text-emerald-300 border border-white/[0.08] transition-all cursor-pointer">
+                                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <span class="text-[9px] font-bold px-2 py-0.5 rounded border ${badgeClass}">${typeText}</span>
-                            <div class="text-[9px] font-mono text-emerald-400 mt-0.5">${p.current_apy}% APY</div>
+
+                        <!-- 1. Сколько добавлялось & 2. Когда (Депозит) -->
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
+                                <div class="text-[9px] uppercase font-semibold text-gray-400 flex items-center space-x-1">
+                                    <span>📥</span>
+                                    <span>Сколько добавлялось</span>
+                                </div>
+                                <div class="text-xs font-bold font-mono text-white mt-0.5">
+                                    $${Number(initialDepositVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </div>
+                                <div class="text-[9px] font-mono text-gray-400 truncate" title="${initialTokensDisplay}">
+                                    ${initialTokensDisplay}
+                                </div>
+                            </div>
+
+                            <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
+                                <div class="text-[9px] uppercase font-semibold text-gray-400 flex items-center space-x-1">
+                                    <span>⏳</span>
+                                    <span>Когда (Депозит)</span>
+                                </div>
+                                <div class="text-xs font-semibold text-gray-200 mt-0.5 truncate" title="${dateDisplay}">
+                                    ${dateDisplay}
+                                </div>
+                                <div class="text-[9px] text-gray-500 font-mono">
+                                    ${p.entry_date || ''}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Value & Yield / Fees / Debt -->
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
+                                <div class="text-[9px] uppercase font-semibold text-gray-400 flex items-center space-x-1">
+                                    <span>💎</span>
+                                    <span>Текущая ст-ть</span>
+                                </div>
+                                <div class="text-xs font-bold font-mono text-white mt-0.5">
+                                    $${Number(currentVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </div>
+                                <div class="text-[9px] font-mono text-teal-300 truncate" title="${currentTokensDisplay}">
+                                    ${currentTokensDisplay}
+                                </div>
+                            </div>
+
+                            <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
+                                <div class="text-[9px] uppercase font-semibold text-gray-400">
+                                    ${isBorrow ? 'Накопл. долг' : (isLp ? 'Комиссии пула' : 'Накопл. доход')}
+                                </div>
+                                <div class="text-xs font-bold font-mono ${isBorrow ? 'text-rose-400' : 'text-teal-300'} mt-0.5">
+                                    ${isBorrow ? '-' : '+'}$${Number(isBorrow ? p.borrow_debt_usd : (isLp ? p.fee_earnings_usd : p.earned_yield_usd)).toFixed(2)}
+                                </div>
+                                ${isLp && p.impermanent_loss_usd ? `
+                                    <div class="text-[9px] font-mono text-rose-400/90">IL: -$${Number(p.impermanent_loss_usd).toFixed(2)}</div>
+                                ` : `
+                                    <div class="text-[9px] font-mono text-gray-500 truncate">${p.notes || ''}</div>
+                                `}
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Metrics Grid: Сколько добавлялось & Когда -->
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
-                            <div class="text-[9px] uppercase font-semibold text-gray-400">Сколько добавлялось</div>
-                            <div class="text-xs font-bold font-mono text-white mt-0.5">
-                                $${Number(initialDepositVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                            </div>
-                            <div class="text-[9px] font-mono text-gray-400 truncate" title="${initialTokensDisplay}">
-                                ${initialTokensDisplay}
-                            </div>
+                    <!-- 3. ОБЩИЙ ПРИРОСТ КАПИТАЛА ЗА ЭТО ВРЕМЯ (Prominent Banner) -->
+                    <div class="pt-2 border-t border-white/[0.06] mt-1">
+                        <div class="p-2 rounded-lg bg-gradient-to-r ${netPnlVal >= 0 ? 'from-emerald-950/40 to-teal-950/20 border border-emerald-500/30' : 'from-rose-950/40 to-red-950/20 border border-rose-500/30'} flex items-center justify-between">
+                            <span class="text-[10px] uppercase font-semibold text-gray-300 flex items-center space-x-1">
+                                <span>${netPnlVal >= 0 ? '📈' : '📉'}</span>
+                                <span>Общий прирост капитала:</span>
+                            </span>
+                            <span class="text-xs font-bold font-mono ${pnlClass}">
+                                ${pnlSign}$${Number(netPnlVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${pnlSign}${netPnlPct}%)
+                            </span>
                         </div>
-
-                        <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
-                            <div class="text-[9px] uppercase font-semibold text-gray-400">Когда (Дата депозита)</div>
-                            <div class="text-xs font-semibold text-gray-200 mt-0.5 truncate" title="${dateDisplay}">
-                                ${dateDisplay}
-                            </div>
-                            <div class="text-[9px] text-gray-500 font-mono">
-                                ${p.entry_date || ''}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Current Value & Yield / Fees / Debt -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
-                            <div class="text-[9px] uppercase font-semibold text-gray-400">Текущая стоимость</div>
-                            <div class="text-xs font-bold font-mono text-white mt-0.5">
-                                $${Number(currentVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                            </div>
-                            <div class="text-[9px] font-mono text-teal-300 truncate" title="${currentTokensDisplay}">
-                                ${currentTokensDisplay}
-                            </div>
-                        </div>
-
-                        <div class="p-2 rounded-lg bg-[#05070d] border border-white/[0.04]">
-                            <div class="text-[9px] uppercase font-semibold text-gray-400">
-                                ${isBorrow ? 'Накопл. долг' : (isLp ? 'Комиссии пула' : 'Накопл. доход')}
-                            </div>
-                            <div class="text-xs font-bold font-mono ${isBorrow ? 'text-rose-400' : 'text-teal-300'} mt-0.5">
-                                ${isBorrow ? '-' : '+'}$${Number(isBorrow ? p.borrow_debt_usd : (isLp ? p.fee_earnings_usd : p.earned_yield_usd)).toFixed(2)}
-                            </div>
-                            ${isLp && p.impermanent_loss_usd ? `
-                                <div class="text-[9px] font-mono text-rose-400/90">IL: -$${Number(p.impermanent_loss_usd).toFixed(2)}</div>
-                            ` : `
-                                <div class="text-[9px] font-mono text-gray-500">${p.notes || ''}</div>
-                            `}
-                        </div>
-                    </div>
-
-                    <!-- Total Capital Growth / Net PnL Highlight -->
-                    <div class="pt-2 border-t border-white/[0.06] flex items-center justify-between">
-                        <span class="text-[10px] uppercase font-semibold text-gray-400">Общий прирост капитала:</span>
-                        <span class="text-xs font-bold font-mono ${pnlClass} px-2 py-0.5 rounded bg-white/[0.03] border border-white/[0.05]">
-                            ${pnlSign}$${Number(netPnlVal).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} (${pnlSign}${netPnlPct}%)
-                        </span>
                     </div>
                 </div>
                 `;
@@ -1483,6 +1500,31 @@
         }).join('');
 
         lucide.createIcons();
+    }
+
+    async function importSingleScannedPosition(idx) {
+        if (!scannedPositionsCache || !scannedPositionsCache[idx]) return;
+        const pos = scannedPositionsCache[idx];
+
+        try {
+            const res = await fetch('/api/portfolio/wallet-import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ positions: [pos] })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                updateUI(data.summary, data.positions);
+                localStorage.setItem('user_portfolio_cache', JSON.stringify(data.positions));
+                alert(`Позиция ${pos.protocol} (${pos.asset}) успешно импортирована в портфель!`);
+                document.getElementById('positionsTableBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                alert(data.message || 'Ошибка при импорте позиции');
+            }
+        } catch(err) {
+            console.error('Import error:', err);
+            alert('Ошибка сервера при импорте');
+        }
     }
 
     async function importScannedPositions() {
