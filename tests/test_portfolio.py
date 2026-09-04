@@ -451,3 +451,27 @@ def test_user_wallet_scan_matches_debank():
     assert len(res["recent_transactions"]) > 0
     assert any(tx["chain"] == "Plasma" or "0x1e79" in tx.get("to", "") for tx in res["recent_transactions"])
 
+
+def test_polygon_hyperliquid_scan_matches_debank():
+    """Verify scanning 0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb matches DeBank (~$37,000 net worth with POL at ~$0.095)."""
+    from data.wallet_scanner import scan_wallet_positions, DASHBOARD_CHAINS
+
+    target_address = "0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb"
+    res = scan_wallet_positions(target_address, chains=DASHBOARD_CHAINS)
+
+    assert res["status"] == "success"
+    # Valuation should be between $30,000 and $45,000 (not $170,000)
+    assert 30000.0 <= res["total_value_usd"] <= 45000.0
+
+    # Verify POL token on Polygon
+    pol_tokens = [t for t in res["wallet_tokens"] if t["chain"] == "Polygon" and t["symbol"] == "POL"]
+    assert len(pol_tokens) == 1
+    assert pol_tokens[0]["balance"] > 370000.0
+    assert 0.05 <= pol_tokens[0]["price_usd"] <= 0.15
+
+    # Verify Hyperliquid L1 balance
+    hl_tokens = [t for t in res["wallet_tokens"] if t["chain"] == "Hyperliquid L1"]
+    assert len(hl_tokens) >= 1
+    assert any(t["symbol"] == "USDT0" and t["balance"] > 700.0 for t in hl_tokens)
+
+

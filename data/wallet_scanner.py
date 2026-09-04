@@ -115,7 +115,8 @@ CHAIN_CONFIGS: Dict[str, Dict[str, Any]] = {
         "rpc": "https://polygon-bor-rpc.publicnode.com",
         "symbol": "POL",
         "decimals": 18,
-        "coingecko": "coingecko:matic-network",
+        "coingecko": "coingecko:polygon-ecosystem-token",
+        "default_price": 0.095,
         "is_evm": True
     },
     "BSC": {
@@ -129,8 +130,8 @@ CHAIN_CONFIGS: Dict[str, Dict[str, Any]] = {
         "rpc": "https://rpc.soniclabs.com",
         "symbol": "S",
         "decimals": 18,
-        "coingecko": "coingecko:sonic",
-        "default_price": 0.75,
+        "coingecko": "coingecko:sonic-3",
+        "default_price": 0.028,
         "is_evm": True
     },
     "Linea": {
@@ -285,7 +286,7 @@ CHAIN_CONFIGS: Dict[str, Dict[str, Any]] = {
 POPULAR_ERC20_TOKENS = [
     {"chain": "Plasma", "symbol": "USDT0", "address": "0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb", "decimals": 6, "price": 1.0},
     {"chain": "Arbitrum", "symbol": "USDC", "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831", "decimals": 6, "price": 1.0},
-    {"chain": "Arbitrum", "symbol": "USDT", "address": "0xfd064a18f3bd345d442c32a8a263f5b00fd48b67", "decimals": 6, "price": 1.0},
+    {"chain": "Arbitrum", "symbol": "USDT", "address": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9", "decimals": 6, "price": 1.0},
     {"chain": "Base", "symbol": "USDC", "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913", "decimals": 6, "price": 1.0},
     {"chain": "Avalanche", "symbol": "USDC", "address": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e", "decimals": 6, "price": 1.0},
     {"chain": "Avalanche", "symbol": "USDt", "address": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7", "decimals": 6, "price": 1.0},
@@ -313,11 +314,11 @@ def get_token_prices() -> Dict[str, float]:
         "ETH": 2510.0,
         "AVAX": 7.50,
         "BNB": 725.0,
-        "POL": 0.45,
+        "POL": 0.095,
         "SOL": 105.0,
         "SUI": 0.78,
         "XPL": 0.093,
-        "S": 0.75,
+        "S": 0.028,
         "MNT": 0.65,
         "CELO": 0.40,
         "xDAI": 1.0,
@@ -487,6 +488,30 @@ def _get_known_address_history(address: str) -> List[Dict[str, Any]]:
     return []
 
 
+def _query_hyperliquid_balances(address: str) -> List[Dict[str, Any]]:
+    """Query Hyperliquid L1 spot balances for an EVM address."""
+    results = []
+    try:
+        url = "https://api.hyperliquid.xyz/info"
+        payload = json.dumps({"type": "spotClearinghouseState", "user": address}).encode()
+        req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, context=_SSL_CONTEXT, timeout=3.5) as resp:
+            data = json.loads(resp.read().decode())
+            for b in data.get("balances", []):
+                coin = b.get("coin", "")
+                total = float(b.get("total", 0.0))
+                if total > 0.0001:
+                    results.append({
+                        "chain": "Hyperliquid L1",
+                        "symbol": coin,
+                        "balance": total,
+                        "contract": f"hl:{b.get('token', 'spot')}"
+                    })
+    except Exception:
+        pass
+    return results
+
+
 def scan_wallet_positions(
     address: str,
     chains: Optional[List[str]] = None,
@@ -540,7 +565,17 @@ def scan_wallet_positions(
                 if chain_rpc:
                     tasks.append(executor.submit(_query_erc20_balance, c, chain_rpc, token_cfg, addr))
 
-        raw_results = [f.result() for f in concurrent.futures.as_completed(tasks)]
+        # Query Hyperliquid L1 if selected
+        if "Hyperliquid L1" in selected_chains and addr_type == "evm":
+            tasks.append(executor.submit(_query_hyperliquid_balances, addr))
+
+        raw_completed = [f.result() for f in concurrent.futures.as_completed(tasks)]
+        raw_results = []
+        for item in raw_completed:
+            if isinstance(item, list):
+                raw_results.extend(item)
+            elif isinstance(item, dict):
+                raw_results.append(item)
 
     # Collect discovered token holdings (filter dust < $0.01)
     wallet_tokens: List[Dict[str, Any]] = []
